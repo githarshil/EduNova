@@ -3,6 +3,25 @@ import { Maximize2, Minimize2, RotateCcw, ExternalLink, Loader2, AlertCircle } f
 import { PaperCard, Button } from './ui';
 
 /**
+ * Normalize iamtechartist.com article URLs to their direct /Apps/<slug>/ embed endpoint.
+ */
+function resolveEmbedSrc(rawSrc) {
+  if (!rawSrc) return 'https://iamtechartist.com/Apps/heart-and-circulatory-system/';
+  try {
+    const u = new URL(rawSrc);
+    if (u.hostname.replace(/^www\./, '') === 'iamtechartist.com' && !u.pathname.startsWith('/Apps/')) {
+      const slug = u.pathname.replace(/^\/+|\/+$/g, '');
+      if (slug) {
+        return `https://iamtechartist.com/Apps/${slug}/`;
+      }
+    }
+  } catch {
+    // Keep original string if not a valid absolute URL
+  }
+  return rawSrc;
+}
+
+/**
  * Reusable iframe sandbox for interactive 3D/web STEM simulations wrapped in dark slate workbench chrome.
  */
 export default function ExternalSimulationFrame({
@@ -13,11 +32,35 @@ export default function ExternalSimulationFrame({
   minHeight = '480px',
   defaultHeight = '620px',
 }) {
+  const embedSrc = resolveEmbedSrc(src);
   const containerRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    setIsLoading(true);
+    setHasError(typeof navigator !== 'undefined' ? !navigator.onLine : false);
+  }, [embedSrc, reloadKey]);
+
+  useEffect(() => {
+    const onOnline = () => {
+      setHasError(false);
+      setIsLoading(true);
+      setReloadKey((k) => k + 1);
+    };
+    const onOffline = () => {
+      setHasError(true);
+      setIsLoading(false);
+    };
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -33,14 +76,14 @@ export default function ExternalSimulationFrame({
     };
   }, []);
 
+  // Reveal the live iframe canvas after 3.5s even if large 3D sub-assets are still streaming
   useEffect(() => {
     if (!isLoading) return undefined;
     const timer = setTimeout(() => {
-      setHasError(true);
       setIsLoading(false);
-    }, 20000);
+    }, 3500);
     return () => clearTimeout(timer);
-  }, [isLoading, reloadKey]);
+  }, [isLoading, embedSrc, reloadKey]);
 
   const toggleFullscreen = async () => {
     try {
@@ -179,19 +222,21 @@ export default function ExternalSimulationFrame({
             </div>
           ) : (
             <iframe
-              key={reloadKey}
-              src={src}
+              key={`${embedSrc}-${reloadKey}`}
+              src={embedSrc}
               title={title}
-              loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
               allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
               onLoad={() => {
                 setIsLoading(false);
                 setHasError(false);
               }}
               onError={() => {
-                setIsLoading(false);
-                setHasError(true);
+                if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                  setIsLoading(false);
+                  setHasError(true);
+                }
               }}
               style={{
                 width: '100%',

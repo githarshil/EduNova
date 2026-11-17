@@ -236,6 +236,13 @@ a {
   }
 }
 
+/* Hide injected Netlify free-tier badge iframe so it never blocks Chotu FAB */
+#nl-badge-frame,
+iframe[title="Powered by Netlify"] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 /* Screen-reader only */
 .sr-only {
   position: absolute;

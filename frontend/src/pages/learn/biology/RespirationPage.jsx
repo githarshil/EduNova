@@ -49,7 +49,7 @@ export default function RespirationPage() {
       {activeTab === 'simulation' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <ExternalSimulationFrame
-            src="https://iamtechartist.com/breathing-and-respiration/"
+            src="https://iamtechartist.com/Apps/breathing-and-respiration/"
             title="Breathing and Respiration 3D Lab (iamtechartist.com)"
             attributionText="Interactive simulation powered by iamtechartist.com"
             attributionUrl="https://iamtechartist.com/breathing-and-respiration/"

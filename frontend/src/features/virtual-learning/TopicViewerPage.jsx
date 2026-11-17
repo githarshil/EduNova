@@ -118,93 +118,125 @@ export default function TopicViewerPage() {
 
   // Render proper simulation based on slug
   const renderSimulation = () => {
-    switch (topicSlug) {
-      case 'light-and-optics':
-        return <RayOpticsSimulation />;
-      case 'molecule-viewer':
-        return <MoleculeViewerSimulation />;
-      case 'conic-sections':
-        return <ConicSectionsSimulation />;
-      case 'heart-and-circulation':
-        return (
+    const renderDualMode = ({
+      src,
+      title,
+      attributionUrl,
+      guideLink,
+      controlsHint,
+      fallbackSim,
+    }) => (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--sp-3)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
+          <div style={{ display: 'flex', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
+            <Button
+              size="sm"
+              variant={newtonViewMode === '3d' ? 'primary' : 'ghost'}
+              onClick={() => setNewtonViewMode('3d')}
+            >
+              3D Interactive Model
+            </Button>
+            <Button
+              size="sm"
+              variant={newtonViewMode === '2d' ? 'primary' : 'ghost'}
+              onClick={() => setNewtonViewMode('2d')}
+            >
+              2D Interactive Lab
+            </Button>
+          </div>
+          <span className="type-small" style={{ color: 'var(--ink-muted)' }}>
+            {newtonViewMode === '3d' ? 'Interactive 3D Simulation by iamtechartist' : 'Interactive 2D Parameter Workbench'}
+          </span>
+        </div>
+
+        {newtonViewMode === '3d' ? (
           <div>
             <ExternalSimulationFrame
-              src="https://iamtechartist.com/Apps/heart-and-circulatory-system/"
-              title="Human Heart & Circulatory System 3D Interactive Lab"
-              attributionText="Interactive simulation powered by iamtechartist.com"
-              attributionUrl="https://iamtechartist.com/Apps/heart-and-circulatory-system/"
+              src={src}
+              title={title}
+              attributionText="Interactive 3D simulation powered by iamtechartist.com"
+              attributionUrl={attributionUrl}
               minHeight="480px"
               defaultHeight="620px"
             />
             <div style={{ marginTop: 'var(--sp-3)', padding: 'var(--sp-3)', background: 'var(--paper-warm)', borderRadius: 'var(--r-sm)', border: '1px solid var(--paper-edge)', fontSize: '0.84rem', color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
               <div>
-                <strong style={{ color: 'var(--ink)' }}>Controls:</strong> Click/touch &amp; drag to rotate 3D view. Scroll or pinch to zoom. Use Fullscreen for laboratory study.
+                <strong style={{ color: 'var(--ink)' }}>Controls:</strong> {controlsHint}
               </div>
-              <Link to="/learn/biology/human-heart" style={{ color: 'var(--emerald-700)', fontWeight: 700, textDecoration: 'none' }}>
-                Full Lesson Guide →
-              </Link>
+              {guideLink ? (
+                <Link to={guideLink} style={{ color: 'var(--emerald-700)', fontWeight: 700, textDecoration: 'none' }}>
+                  Full Lesson Guide →
+                </Link>
+              ) : null}
             </div>
           </div>
-        );
+        ) : (
+          fallbackSim
+        )}
+      </div>
+    );
+
+    switch (topicSlug) {
+      case 'light-and-optics':
+        return renderDualMode({
+          src: 'https://iamtechartist.com/Apps/light-and-optics/',
+          title: 'Light & Optics Interactive Ray Tracing Lab',
+          attributionUrl: 'https://iamtechartist.com/light-and-optics/',
+          guideLink: '/learn/physics/light-and-optics',
+          controlsHint: 'Adjust lenses, mirrors, prisms, and wavelengths interactively. Use Fullscreen for full bench study.',
+          fallbackSim: <RayOpticsSimulation />,
+        });
+      case 'molecule-viewer':
+        return <MoleculeViewerSimulation />;
+      case 'conic-sections':
+        return <ConicSectionsSimulation />;
+      case 'heart-and-circulation':
+        return renderDualMode({
+          src: 'https://iamtechartist.com/Apps/heart-and-circulatory-system/',
+          title: 'Human Heart & Circulatory System 3D Interactive Lab',
+          attributionUrl: 'https://iamtechartist.com/Apps/heart-and-circulatory-system/',
+          guideLink: '/learn/biology/human-heart',
+          controlsHint: 'Click/touch & drag to rotate 3D view. Scroll or pinch to zoom. Use Fullscreen for laboratory study.',
+          fallbackSim: <HeartCirculationSimulation />,
+        });
       case 'waves-and-sound':
-        return <WavesSoundSimulation />;
+        return renderDualMode({
+          src: 'https://iamtechartist.com/Apps/waves-and-sound/',
+          title: 'Waves and Sound Interactive Lab',
+          attributionUrl: 'https://iamtechartist.com/waves-and-sound/',
+          guideLink: '/learn/physics/waves-and-sound',
+          controlsHint: 'Adjust wave frequency, amplitude, and Doppler motion in real time.',
+          fallbackSim: <WavesSoundSimulation />,
+        });
       case 'trigonometry-unit-circle':
         return <TrigUnitCircleSimulation />;
       case 'newtons-laws':
-        return (
-          <div>
-            {/* View Mode Toggle: 3D Holographic Experience vs 2D Numerical Lab */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--sp-3)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
-              <div style={{ display: 'flex', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
-                <Button
-                  size="sm"
-                  variant={newtonViewMode === '3d' ? 'primary' : 'ghost'}
-                  onClick={() => setNewtonViewMode('3d')}
-                >
-                  3D Holographic Model
-                </Button>
-                <Button
-                  size="sm"
-                  variant={newtonViewMode === '2d' ? 'primary' : 'ghost'}
-                  onClick={() => setNewtonViewMode('2d')}
-                >
-                  2D Numerical Physics Lab
-                </Button>
-              </div>
-
-              <span className="type-small" style={{ color: 'var(--ink-muted)' }}>
-                {newtonViewMode === '3d' ? 'Interactive 3D Hologram by iamtechartist' : 'Friction, F = ma & Recoil calculations'}
-              </span>
-            </div>
-
-            {newtonViewMode === '3d' ? (
-              <div>
-                <ExternalSimulationFrame
-                  src="https://iamtechartist.com/Apps/newtons-laws-of-motion/"
-                  title="Newton's Laws of Motion: 3D Holographic Lab"
-                  attributionText="3D interactive model powered by iamtechartist.com"
-                  attributionUrl="https://iamtechartist.com/Apps/newtons-laws-of-motion/"
-                  minHeight="480px"
-                  defaultHeight="620px"
-                />
-                <div style={{ marginTop: 'var(--sp-3)', padding: 'var(--sp-3)', background: 'var(--paper-warm)', borderRadius: 'var(--r-sm)', border: '1px solid var(--paper-edge)', fontSize: '0.84rem', color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
-                  <div>
-                    <strong style={{ color: 'var(--ink)' }}>Controls:</strong> Click &amp; drag to orbit in 3D. Use the chapter rail on the right side to inspect each law with Newton's bust.
-                  </div>
-                  <Link to="/learn/physics/newtons-laws" style={{ color: 'var(--emerald-700)', fontWeight: 700, textDecoration: 'none' }}>
-                    Full Lesson Guide →
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <NewtonLawsSimulation />
-            )}
-          </div>
-        );
+        return renderDualMode({
+          src: 'https://iamtechartist.com/Apps/newtons-laws-of-motion/',
+          title: "Newton's Laws of Motion: 3D Holographic Lab",
+          attributionUrl: 'https://iamtechartist.com/Apps/newtons-laws-of-motion/',
+          guideLink: '/learn/physics/newtons-laws',
+          controlsHint: "Click & drag to orbit in 3D. Use the chapter rail on the right side to inspect each law with Newton's bust.",
+          fallbackSim: <NewtonLawsSimulation />,
+        });
       case 'breathing-and-respiration':
-        return <BreathingRespirationSimulation />;
+        return renderDualMode({
+          src: 'https://iamtechartist.com/Apps/breathing-and-respiration/',
+          title: 'Breathing and Respiration 3D Lab',
+          attributionUrl: 'https://iamtechartist.com/breathing-and-respiration/',
+          guideLink: '/learn/biology/respiration',
+          controlsHint: 'Explore diaphragm mechanics, alveolar gas exchange, and respiratory pathways in 3D.',
+          fallbackSim: <BreathingRespirationSimulation />,
+        });
       case 'skeleton-and-muscles':
-        return <SkeletonMusclesSimulation />;
+        return renderDualMode({
+          src: 'https://iamtechartist.com/Apps/the-13-muscles/',
+          title: 'The 13 Major Muscles 3D Lab',
+          attributionUrl: 'https://iamtechartist.com/the-13-muscles/',
+          guideLink: '/learn/biology/muscular-system',
+          controlsHint: 'Rotate between anterior and posterior muscle views and tap individual muscles to inspect actions.',
+          fallbackSim: <SkeletonMusclesSimulation />,
+        });
       default:
         return <RayOpticsSimulation />;
     }

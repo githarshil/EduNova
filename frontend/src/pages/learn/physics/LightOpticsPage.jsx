@@ -49,7 +49,7 @@ export default function LightOpticsPage() {
       {activeTab === 'simulation' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <ExternalSimulationFrame
-            src="https://iamtechartist.com/light-and-optics/"
+            src="https://iamtechartist.com/Apps/light-and-optics/"
             title="Light & Optics Interactive Ray Tracing Lab (iamtechartist.com)"
             attributionText="Interactive simulation powered by iamtechartist.com"
             attributionUrl="https://iamtechartist.com/light-and-optics/"

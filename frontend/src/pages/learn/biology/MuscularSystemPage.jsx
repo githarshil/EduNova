@@ -65,7 +65,7 @@ export default function MuscularSystemPage() {
       {activeTab === 'simulation' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <ExternalSimulationFrame
-            src="https://iamtechartist.com/the-13-muscles/"
+            src="https://iamtechartist.com/Apps/the-13-muscles/"
             title="The 13 Major Muscles 3D Lab (iamtechartist.com)"
             attributionText="Interactive simulation powered by iamtechartist.com"
             attributionUrl="https://iamtechartist.com/the-13-muscles/"

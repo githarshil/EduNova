@@ -49,7 +49,7 @@ export default function WavesSoundPage() {
       {activeTab === 'simulation' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <ExternalSimulationFrame
-            src="https://iamtechartist.com/waves-and-sound/"
+            src="https://iamtechartist.com/Apps/waves-and-sound/"
             title="Waves and Sound Interactive Lab (iamtechartist.com)"
             attributionText="Interactive simulation powered by iamtechartist.com"
             attributionUrl="https://iamtechartist.com/waves-and-sound/"
