@@ -4,8 +4,9 @@ require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 const { supabaseAdmin } = require('../utils/supabaseAdmin');
 const { generateSummary } = require('../utils/gemini');
 const { retrieve } = require('../src/rag/retrieval');
+const { generateGroqCompletion, getGeminiApiKey, isGroqConfigured, raceAiProviders } = require('../utils/groqFallback');
 
-const GEMINI_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-1.5-flash';
+const GEMINI_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
 
 /**
  * Phase 1 backward-compatible lesson summary
@@ -155,28 +156,36 @@ Also provide 5 active-recall FLASHCARDS based on this text in the following JSON
     let generatedText = '';
     let flashcards = [];
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey && apiKey.trim()) {
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-        const result = await model.generateContent(prompt);
-        const responseText = (await result.response).text();
+    const parseSummaryAndFlashcards = (responseText) => {
+      const jsonMatch = responseText.match(/```json([\s\S]*?)```/);
+      if (jsonMatch) {
+        try {
+          flashcards = JSON.parse(jsonMatch[1].trim());
+          generatedText = responseText.replace(/```json[\s\S]*?```/, '').trim();
+          return;
+        } catch (_) {}
+      }
+      generatedText = responseText;
+    };
 
-        // Parse flashcards if JSON block exists
-        const jsonMatch = responseText.match(/```json([\s\S]*?)```/);
-        if (jsonMatch) {
-          try {
-            flashcards = JSON.parse(jsonMatch[1].trim());
-            generatedText = responseText.replace(/```json[\s\S]*?```/, '').trim();
-          } catch (_) {
-            generatedText = responseText;
-          }
-        } else {
-          generatedText = responseText;
-        }
-      } catch (geminiErr) {
-        console.warn('Gemini summary call error:', geminiErr.message);
+    const apiKey = getGeminiApiKey();
+    if (apiKey || isGroqConfigured()) {
+      try {
+        const winner = await raceAiProviders({
+          geminiFn: apiKey
+            ? async () => {
+                const genAI = new GoogleGenerativeAI(apiKey);
+                const modelName = process.env.GEMINI_CHAT_MODEL || GEMINI_MODEL;
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const result = await model.generateContent(prompt);
+                return { text: (await result.response).text(), model: modelName };
+              }
+            : null,
+          groqFn: isGroqConfigured() ? () => generateGroqCompletion({ userText: prompt }) : null
+        });
+        parseSummaryAndFlashcards(winner.text);
+      } catch (raceErr) {
+        console.warn('Summary AI race error:', raceErr.message);
       }
     }
 

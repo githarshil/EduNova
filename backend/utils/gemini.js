@@ -4,6 +4,7 @@
  * text trimming, and bilingual (English/Hindi) school-level summaries.
  */
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { generateGroqCompletion, getGeminiApiKey, isGroqConfigured, raceAiProviders } = require('./groqFallback');
 
 const MAX_LESSON_CHARS = 8000;
 const TIMEOUT_MS = 10000; // 10 seconds timeout limit per PRD
@@ -91,69 +92,65 @@ function generateExtractiveSummary(lesson, language = 'en') {
  * Task 7.2 & 7.5: Handles key retrieval, timeouts, rate limits, and fallback
  */
 async function generateSummary(lesson, language = 'en') {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   const isHindi = language === 'hi';
   const lessonTitle = isHindi && lesson.titleHindi ? lesson.titleHindi : lesson.title;
   const lessonText = extractLessonText(lesson, language);
-
-  // If no API key provided, use the high-quality student revision generator
-  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey.trim() === '') {
-    return {
-      summary: generateExtractiveSummary(lesson, language),
-      source: 'offline_engine',
-      language
-    };
-  }
-
   const prompt = buildPrompt(lessonTitle, lessonText, language);
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  if (apiKey || isGroqConfigured()) {
+    try {
+      const winner = await raceAiProviders({
+        geminiFn: apiKey
+          ? async () => {
+              const genAI = new GoogleGenerativeAI(apiKey);
+              const modelName = process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
+              const model = genAI.getGenerativeModel({ model: modelName });
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT: Gemini AI request timed out after 10s')), TIMEOUT_MS)
+              );
+              const callPromise = (async () => {
+                const result = await model.generateContent(prompt);
+                return (await result.response).text();
+              })();
+              const text = await Promise.race([callPromise, timeoutPromise]);
+              return { text, model: modelName };
+            }
+          : null,
+        groqFn: isGroqConfigured()
+          ? () => generateGroqCompletion({ userText: prompt, timeoutMs: TIMEOUT_MS })
+          : null
+      });
 
-    // Enforce 10-second timeout using Promise.race (Task 7.5)
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('TIMEOUT: Gemini AI request timed out after 10s')), TIMEOUT_MS)
-    );
+      return {
+        summary: winner.text,
+        source: `${winner.provider}:${winner.model}`,
+        language
+      };
+    } catch (error) {
+      console.error('Summary AI invocation error:', error.message);
 
-    const callPromise = (async () => {
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    })();
+      if (/429|quota|rate/i.test(error.message)) {
+        const rateLimitError = new Error('AI summary service is currently busy due to rate limits. Please click Retry in a few moments.');
+        rateLimitError.statusCode = 429;
+        throw rateLimitError;
+      }
 
-    const summaryText = await Promise.race([callPromise, timeoutPromise]);
-
-    return {
-      summary: summaryText.trim(),
-      source: 'gemini-1.5-flash',
-      language
-    };
-  } catch (error) {
-    console.error('Gemini API invocation error:', error.message);
-
-    // Rate limit handling (HTTP 429) (Task 7.5)
-    if (error.message.includes('429') || error.message.toLowerCase().includes('quota') || error.message.toLowerCase().includes('rate')) {
-      const rateLimitError = new Error('AI summary service is currently busy due to rate limits. Please click Retry in a few moments.');
-      rateLimitError.statusCode = 429;
-      throw rateLimitError;
+      if (/TIMEOUT|timed out/i.test(error.message)) {
+        const timeoutError = new Error('AI summary request timed out. Please check your internet connection and retry.');
+        timeoutError.statusCode = 504;
+        throw timeoutError;
+      }
     }
-
-    // Timeout handling (Task 7.5)
-    if (error.message.includes('TIMEOUT') || error.message.toLowerCase().includes('timed out')) {
-      const timeoutError = new Error('AI summary request timed out. Please check your internet connection and retry.');
-      timeoutError.statusCode = 504;
-      throw timeoutError;
-    }
-
-    // If generic error, fall back to extractive summary rather than breaking the UI
-    console.warn('Falling back to local revision summary due to API error.');
-    return {
-      summary: generateExtractiveSummary(lesson, language),
-      source: 'fallback_engine',
-      language
-    };
   }
+
+  // Fallback to local revision summary if both providers are unavailable
+  console.warn('Falling back to local revision summary.');
+  return {
+    summary: generateExtractiveSummary(lesson, language),
+    source: 'fallback_engine',
+    language
+  };
 }
 
 module.exports = {

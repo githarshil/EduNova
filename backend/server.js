@@ -14,6 +14,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const { supabaseAdmin } = require('./utils/supabaseAdmin');
 const routes = require('./routes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { attachLiveWebSocketServer } = require('./src/live/liveWsServer');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,5 +44,8 @@ app.use(errorHandler);
 const server = app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
+
+// Attach Live Class WebSocket relay (/ws/live)
+attachLiveWebSocketServer(server);
 
 module.exports = { app, server };

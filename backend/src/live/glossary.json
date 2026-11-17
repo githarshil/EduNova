@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "version": 1,
+    "domain": "CBSE Class 10 STEM (Hindi -> Kannada)",
+    "note": "Every Kannada term is marked needsReview: true and should be verified by a fluent Kannada STEM educator."
+  },
+  "terms": [
+    { "en": "velocity", "hi": "वेग", "kn": "ವೇಗ", "needsReview": true },
+    { "en": "acceleration", "hi": "त्वरण", "kn": "ತ್ವರಿತ", "needsReview": true },
+    { "en": "force", "hi": "बल", "kn": "ಬಲ", "needsReview": true },
+    { "en": "momentum", "hi": "संवेग", "kn": "ಸಂವೇಗ", "needsReview": true },
+    { "en": "inertia", "hi": "जड़त्व", "kn": "ಜಡತ್ವ", "needsReview": true },
+    { "en": "gravity", "hi": "गुरुत्वाकर्षण", "kn": "ಗುರುತ್ವಾಕರ್ಷಣೆ", "needsReview": true },
+    { "en": "energy", "hi": "ऊर्जा", "kn": "ಶಕ್ತಿ", "needsReview": true },
+    { "en": "work", "hi": "कार्य", "kn": "ಕೆಲಸ", "needsReview": true },
+    { "en": "power", "hi": "शक्ति", "kn": "ಸಾಮರ್ಥ್ಯ", "needsReview": true },
+    { "en": "electric current", "hi": "विद्युत धारा", "kn": "ವಿದ್ಯುತ್ ಪ್ರವಾಹ", "needsReview": true },
+    { "en": "voltage", "hi": "विभवांतर", "kn": "ವೋಲ್ಟೇಜ್", "needsReview": true },
+    { "en": "resistance", "hi": "प्रतिरोध", "kn": "ಪ್ರತಿರೋಧ", "needsReview": true },
+    { "en": "magnetic field", "hi": "चुंबकीय क्षेत्र", "kn": "ಕಾಂತೀಯ ಕ್ಷೇತ್ರ", "needsReview": true },
+    { "en": "refraction", "hi": "अपवर्तन", "kn": "ವಕ್ರೀಭವನ", "needsReview": true },
+    { "en": "reflection", "hi": "परावर्तन", "kn": "ಪ್ರತಿಫಲನ", "needsReview": true },
+    { "en": "wavelength", "hi": "तरंगदैर्ध्य", "kn": "ತರಂಗಾಂತರ", "needsReview": true },
+    { "en": "atom", "hi": "परमाणु", "kn": "ಪರಮಾಣು", "needsReview": true },
+    { "en": "molecule", "hi": "अणु", "kn": "ಅಣು", "needsReview": true },
+    { "en": "electron", "hi": "इलेक्ट्रॉन", "kn": "ಎಲೆಕ್ಟ್ರಾನ್", "needsReview": true },
+    { "en": "proton", "hi": "प्रोटॉन", "kn": "ಪ್ರೋಟಾನ್", "needsReview": true },
+    { "en": "chemical reaction", "hi": "रासायनिक अभिक्रिया", "kn": "ರಾಸಾಯನಿಕ ಕ್ರಿಯೆ", "needsReview": true },
+    { "en": "acid", "hi": "अम्ल", "kn": "ಆಮ್ಲ", "needsReview": true },
+    { "en": "base", "hi": "क्षार", "kn": "ಕ್ಷಾರ", "needsReview": true },
+    { "en": "photosynthesis", "hi": "प्रकाश संश्लेषण", "kn": "ದ್ಯುತಿಸಂಶ್ಲೇಷಣೆ", "needsReview": true },
+    { "en": "respiration", "hi": "श्वसन", "kn": "ಉಸಿರಾಟ", "needsReview": true },
+    { "en": "cell", "hi": "कोशिका", "kn": "ಜೀವಕೋಶ", "needsReview": true },
+    { "en": "chromosome", "hi": "गुणसूत्र", "kn": "ಕ್ರೋಮೋಸೋಮ್", "needsReview": true },
+    { "en": "ecosystem", "hi": "पारिस्थितिकी तंत्र", "kn": "ಪರಿಸರ ವ್ಯವಸ್ಥೆ", "needsReview": true },
+    { "en": "equation", "hi": "समीकरण", "kn": "ಸಮೀಕರಣ", "needsReview": true },
+    { "en": "triangle", "hi": "त्रिभुज", "kn": "ತ್ರಿಭುಜ", "needsReview": true },
+    { "en": "trigonometry", "hi": "त्रिकोणमिति", "kn": "ತ್ರಿಕೋನಮಿತಿ", "needsReview": true },
+    { "en": "probability", "hi": "प्रायिकता", "kn": "ಸಂಭವನೀಯತೆ", "needsReview": true }
+  ]
+}

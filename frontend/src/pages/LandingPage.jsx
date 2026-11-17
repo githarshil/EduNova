@@ -89,8 +89,8 @@ export default function LandingPage() {
               <Button variant="cream" to={startHref}>
                 Start learning
               </Button>
-              <Button variant="glass" to="/subjects">
-                See how it works
+              <Button variant="glass" to="/live/demo">
+                Try live translation
               </Button>
             </div>
           </div>

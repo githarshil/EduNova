@@ -1,11 +1,13 @@
 const { createClient } = require('@supabase/supabase-js');
-const { supabaseAdmin } = require('../utils/supabaseAdmin');
+const { supabaseAdmin, isSupabaseNetworkError, withSupabaseRetry } = require('../utils/supabaseAdmin');
 
 function getAnonClient() {
   const url = process.env.SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY;
   if (!url || !anonKey) return null;
-  return createClient(url, anonKey);
+  return createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
 }
 
 /**
@@ -124,13 +126,22 @@ const login = async (req, res, next) => {
 
     const cleanEmail = loginEmail.toLowerCase().trim();
 
-    // Sign in using Supabase Auth
-    const { data: authData, error: authErr } = await anon.auth.signInWithPassword({
-      email: cleanEmail,
-      password
-    });
+    // Sign in using Supabase Auth (retry once if Node/Supabase hit a stale socket fetch error)
+    const { data: authData, error: authErr } = await withSupabaseRetry(() =>
+      anon.auth.signInWithPassword({
+        email: cleanEmail,
+        password
+      })
+    );
 
-    if (authErr || !authData?.user) {
+    if (authErr && isSupabaseNetworkError(authErr)) {
+      console.error('[auth/login] Supabase unreachable:', authErr.message || authErr);
+      return res.status(503).json({
+        message: 'Could not reach the authentication server. Check your internet connection and try again.'
+      });
+    }
+
+    if (authErr || !authData?.user || !authData?.session?.access_token) {
       return res.status(401).json({ message: authErr?.message || 'Invalid credentials: user not found' });
     }
 

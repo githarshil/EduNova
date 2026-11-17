@@ -101,6 +101,26 @@ function PixelBookIcon({ size = 16 }) {
   );
 }
 
+function PixelLiveIcon({ size = 16 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+      className="nav-pixel-icon"
+    >
+      <rect x="2" y="4" width="9" height="8" fill="var(--nav-pixel-mint-core)" />
+      <rect x="3" y="5" width="7" height="6" fill="var(--nav-pixel-mint-deep)" />
+      <rect x="11" y="6" width="3" height="4" fill="var(--nav-pixel-gold-bright)" />
+      <rect x="4" y="6" width="2" height="2" fill="var(--white)" />
+      <rect x="8" y="6" width="1" height="1" fill="var(--nav-pixel-gold-bright)" />
+    </svg>
+  );
+}
+
 function PixelFlaskIcon({ size = 16 }) {
   return (
     <svg
@@ -504,6 +524,12 @@ export default function NavBar({
         isActive ||
         location.pathname.startsWith('/lessons') ||
         location.pathname.startsWith('/practice'),
+    },
+    {
+      to: '/live',
+      label: 'Live',
+      icon: PixelLiveIcon,
+      matchActive: (isActive) => isActive || location.pathname.startsWith('/live'),
     },
     {
       to: '/labs',

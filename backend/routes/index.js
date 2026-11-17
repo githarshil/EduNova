@@ -15,6 +15,7 @@ const virtualRoutes = require('./virtualRoutes');
 const notesRoutes = require('./notesRoutes');
 const videoRoutes = require('./videoRoutes');
 const communityRoutes = require('./communityRoutes');
+const liveRoutes = require('../src/live/liveRoutes');
 const { aiRateLimiter } = require('../middleware/rateLimiter');
 
 const { getProfile, updateProfile } = require('../controllers/authController');
@@ -61,6 +62,9 @@ router.use('/videos', videoRoutes);
 
 // Community hub routes (/api/community/*)
 router.use('/community', communityRoutes);
+
+// Live class routes (/api/live/*)
+router.use('/live', liveRoutes);
 
 // RAG Knowledge Base routes (/api/rag/*)
 router.use('/rag', aiRateLimiter, ragRoutes);

@@ -169,8 +169,8 @@ Create `frontend/src/styles/tokens.css` with exactly these variables. Components
   --biology: #22c55e;   --biology-soft: #dcfce7;   --biology-ink: #166534;
 
   /* Type */
-  --font-display: "Bricolage Grotesque", "Noto Sans Devanagari", "Noto Sans", system-ui, sans-serif;
-  --font-body: "Plus Jakarta Sans", "Noto Sans Devanagari", "Noto Sans", system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Noto Sans Devanagari", "Noto Sans Kannada", "Noto Sans", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", "Noto Sans Devanagari", "Noto Sans Kannada", "Noto Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --font-hand: "Caveat", "Kalam", "Noto Sans Devanagari", cursive;
 
@@ -402,11 +402,13 @@ A status mark pressed onto a card. Dashed border, mono bold, uppercase, rotated 
   rotate: -6deg; color: var(--emerald-700); opacity: .85; background: rgba(16,185,129,.06);
 }
 .stamp--new    { color: var(--red-600); border-style: solid; background: rgba(220,38,38,.05); }
+.stamp--live   { color: var(--red-600); border-style: solid; background: rgba(220,38,38,.05); }
 .stamp--locked { color: var(--slate-700); border-style: double; border-width: 4px; background: transparent; }
+.stamp--ended  { color: var(--slate-700); border-style: double; border-width: 4px; background: transparent; }
 .stamp--unlocked { color: var(--emerald-700); border-style: solid; }
 ```
 
-Stamp vocabulary: `Mastered`, `Passed`, `Certified`, `Unlocked`, `New`, `Locked`. Do not invent others without adding them here.
+Stamp vocabulary: `Mastered`, `Passed`, `Certified`, `Unlocked`, `New`, `Locked`, `Live`, `Ended`. Do not invent others without adding them here. `Live` uses the `stamp--new` style (static, never animated); `Ended` uses the `stamp--locked` style.
 
 ### 5.7 Tag (label chip)
 
@@ -454,10 +456,10 @@ Minimum height 44px, radius `--r-md`, bold body font, a 3D bottom edge that pres
 - Left: logo tile (28px rounded square) + app name in display font, white.
 - Middle: tab group in a darker pill (`--slate-800`). Tabs are mono 13px. Active tab: text `--amber-400`, background `#4d4225`, 1.5px `--amber-400` ring.
 - Right: XP chip (lightning icon + number, `--amber-400`, mono bold) and user chip (username + sign-out icon).
-- Items: Home, Syllabus, Lab, Practice, Notes, Profile. Admin adds Content.
+- Items: Home, Syllabus, Live, Lab, Practice, Notes, Profile (mapped onto the current top bar alongside Arena/Community/Notebook as applicable). Admin adds Content.
 - Public routes (`/`, `/login`, `/signup`) when unauthenticated: `NavBar` shows the logo tile + app name on the left, language selector (`EN | हिंदी | मराठी`) and `Log in` / `Sign up` actions on the right. `BottomTabs` and `ChotuFab` are hidden when unauthenticated.
 - When offline, show a compact amber `Offline` status chip in the `NavBar` right cluster alongside the language selector, XP chip (computed from completed lessons/tests/labs, defaulting to `0 XP`), and user chip.
-- Under 768px: the top pill shows only logo, XP and avatar (or language + Log in when unauthenticated); the tabs move to a bottom tab bar with the same pill style (5 items max: Home, Learn/Syllabus, Lab, Practice, Profile; icon above a 12px label, 56px tall, safe-area aware).
+- Under 768px: the top pill shows only logo, XP and avatar (or language + Log in when unauthenticated); the tabs move to a bottom tab bar with the same pill style (5 items max: Home, Syllabus, Live, Labs, Notebook/Profile; icon above a 12px label, 56px tall, safe-area aware). In the live class view (`/live/:code`), mobile `BottomTabs` are hidden and `ControlBar` takes the bottom; `ChotuFab` stays visible above `ControlBar`.
 - Page content starts 88px below the top to clear the pill.
 
 ### 6.3 Section header
@@ -590,6 +592,8 @@ Every page: `AppShell` (desk + nav + `main`), content in a `--page-max` containe
 | Notes & Handwriting studio (`/notes`) | Flat `paper` tab bar (`Handwriting Studio` / `Saved Notes`), `paper--ruled` preview/editor sheet, `Field` inputs, saved notes as `tilt-cycle` `PaperCard` grid |
 | Chotu / Saarthi full studio (`/mentor`) | Flat `paper--ruled` chat sheet with mode tabs (`Doubt Solver` / `AI Mentor`), subject filter pills, blue sticky user notes, yellow sticky Chotu replies, paperclip source chips, `--paper-field` composer with image/camera attach, and `Modal` drawers for session history and memory |
 | Community (`/community`) | Two-column spread: flat `paper` study room list + safety rules `StickyNote` left, flat `paper--ruled` chat sheet right |
+| Live class lobby & room (`/live`, `/live/:code`) | Section 8.2 |
+| Live translation demo (`/live/demo`) | Section 8.3 (public, no login) |
 | Privacy (`/privacy`) | Flat `paper` governance sheet with callout panels and `danger` confirmation `Button` |
 | 404 and errors | A tilted paper note "This page fell off the desk" with a primary button back to Home |
 
@@ -604,6 +608,45 @@ This hero is the one approved exception to the desk-background rule:
 - `Button` gets variants `cream` (`#f5f5f2`, ink text) and `glass` (`--glass-bg`, white text, `1px` `--glass-border` border). Hero only.
 - Three floating activity notification cards (`--hero-card-bg`, `1px solid var(--hero-card-border)`, `--hero-dot` green indicator, staggered entrance and subtle vertical bobbing) sit in the upper-right/center-right region without overlapping the heading or navbar.
 - All continuous motion pauses or settles into a calm static frame under `prefers-reduced-motion: reduce` or `save-data`.
+
+### 8.2 Live class
+
+Near real-time Hindi-to-Kannada classroom built exclusively from existing desk and paper primitives:
+
+- **Nav & Chrome:** Add a `Live` tab to `NavBar` (`/live`) and `BottomTabs` (keeping 5 mobile tabs max). In the active class view (`/live/:code`), mobile `BottomTabs` are hidden and `ControlBar` takes the bottom; `ChotuFab` stays visible above `ControlBar` (offset upward cleanly so neither overlaps).
+- **Lobby (`/live`):** Two flat `PaperCard`s (`paper--flat`) with `Tape`:
+  1. `"Join a class"`: class code `Field` (6 uppercase characters), display name `Field`, primary `Button` `"Join class"`.
+  2. `"Start a class"`: title `Field`, teacher passcode `Field` (when `TEACHER_CODE` gating applies), primary `Button` `"Go live"`.
+- **VideoTile:** Flat `PaperCard` (no tilt) with `Tape`, video inside a `--r-md` frame (`--slate-950` surface when video is loading, off, or audio-only), a name chip bottom-left, and a mic-off icon when muted. The active speaker gets a `2px solid var(--emerald-500)` ring. In this MVP only the teacher has a tile.
+- **Stamp:** Uses `"Live"` (`stamp--new` style, static, no animation) while active and `"Ended"` (`stamp--locked` style) once the session ends.
+- **ControlBar:** Floating pill styled like `NavBar` (`--nav-bg`, radius `--r-pill`), fixed `12px` above the bottom edge, centred, safe-area aware (`bottom: calc(12px + env(safe-area-inset-bottom, 0px))`). Icon buttons at least `44×44px` with `aria-label`. A toggled-on state uses a `2px` `--amber-400` ring (`--nav-tab-active-bg` fill). Includes a segmented language switch `"Hindi (original) | Kannada"` styled like the nav tab group.
+  - **Teacher controls:** Mic toggle, Camera toggle, End class (`danger` variant, opens confirmation `Modal`).
+  - **Student controls:** Language switch (`Hindi (original) | Kannada`, instant switch announced via `aria-live`), Captions toggle, Audio-only toggle (unsubscribes video), Leave.
+- **CaptionSheet:** Flat `PaperCard` with `paper--ruled` (`--read-max` friendly), showing the last 6 sentences, newest at the bottom, auto-scrolling. Kannada text at `20px` in `--font-body`, Hindi text at `14px` in `--ink-muted`. Captions are always readable text, never `--font-hand`.
+- **Class code:** Shown on a yellow `StickyNote` with the 6-character code in `--font-display`, plus a `"Copy link"` `note`-variant `Button`.
+- **Status chips:** Mono (`--font-mono`, 12px+), `"Connecting"`, `"Live"`, `"Reconnecting"`, `"Catching up"`. Each pairs an icon and a word, never colour alone.
+- **Pipeline panel (teacher only, collapsible):** Dark panel (`--slate-900` / `--slate-950`) with mono readout of stage timings in `ms` (`STT`, `Translate`, `TTS`) and total delay per sentence.
+- **Sticky notes:**
+  - Teacher: `"Use a headset so students' audio doesn't echo into your mic"` and `"Your voice is sent to Sarvam for translation. We don't store audio."`
+  - Student: `"Use earphones."`
+- **Fonts & Bundle:** `"Noto Sans Kannada"` is appended to `--font-display` and `--font-body` fallback stacks in `tokens.css`, self-hosted and loaded dynamically only when the Kannada channel or captions are on. `livekit-client` is lazy-loaded only on `/live` routes.
+
+### 8.3 Live demo
+
+Solo Hindi-to-Kannada speech translation showcase (`/live/demo`, public, no login required):
+
+- **Entry points:** Route `/live/demo` (no auth); `"Live translation demo"` flat `PaperCard` with primary `Button` `"Try live translation"` on `/live`; landing hero `glass` `Button` updated to `"Try live translation"` linking to `/live/demo`.
+- **Desk title block:** `tag--tape` `"Live demo"`, display title `"Speak Hindi. Hear Kannada."`, hand note `"one sentence at a time"`.
+- **Source switch & authenticity chips:** Nav tab-group style switch with three modes, each showing an explicit chip on the page so the audience always knows what is real:
+  1. `Microphone` (chip `"Live"`): full STT → Translate → TTS chain over `/ws/live/demo`.
+  2. `Sample sentences` (chip `"Sample, live translation"`): steps through 6 scripted Hindi sentences via real server translation + TTS (no STT).
+  3. `Offline sample` (chip `"Offline sample, pre-recorded"`): plays pre-generated files from `/demo/` with a short artificial pause between stages; never disguised as live output.
+- **PipelineSteps:** Above both cards, four pins (`Pin`) labelled `Hindi speech`, `Hindi text`, `Kannada text`, `Kannada speech`. A pin switches to `--emerald-500` with a tick icon when that stage finishes for the current sentence (never colour alone) and resets for each new sentence.
+- **Left card (`"Teacher speaks (Hindi)"`):** Flat `PaperCard` with `Tape`. Microphone mode uses a balanced half-and-half vertical split: the top half displays a local-only meeting camera preview inside a `--r-md` `--slate-950` frame with a bottom-left `"Teacher"` chip (showing `MicOff` when muted), a `2px` `--emerald-500` ring when actively speaking, a `"Camera on" / "Camera off"` `Button`, and a clean `"Camera off"` fallback when off or unavailable (video never leaves the browser); the bottom half shows a large `kraft` `Button` (`"Start speaking"` / `"Stop"`), an emerald level meter (`--emerald-500`), a `"Waiting for Kannada to finish"` half-duplex chip while audio plays, and the live interim Hindi line. Sample/Offline modes show the upcoming Hindi sentence in large body text, `"Sentence X of 6"`, and primary `Button` `"Translate next sentence"`.
+- **Right card (`"Student hears (Kannada)"`):** Flat `paper--ruled` `PaperCard`. Sentences stack newest at the bottom and auto-scroll. Each row displays Hindi at `14px` in `--ink-muted`, Kannada at `22px` (`36px` when `"Big text"` is on) in `--font-body`, and a `ghost` `"Replay"` `Button`. The row currently playing gets a `4px` `--emerald-500` left border and a `"Playing"` chip with a speaker icon. On mobile (`< 960px`), this card stacks **first** above the speaker card.
+- **Pipeline panel & Check card:** Collapsible dark panel (`--slate-900` / `--slate-950`, **open by default**) with mono readout per sentence (`STT ms`, `translate ms`, `TTS ms`, `total ms`). `"Before you present"` check card shows `Microphone ready`, `Translation service ready`, and `Sound ready` (icons + words) with a `"Run check"` `Button`.
+- **Controls, shortcuts & notes:** `"Sound on/off"`, `"Big text"`, and `"Clear"` controls. Keyboard: `Space` toggles start/stop speaking in Microphone mode; `N` advances next sentence (when focus is not in a form field or interactive control). Yellow `StickyNote`: `"Use earphones or lower the speaker volume."` Status chips (`Connecting`, `Live`, `Reconnecting`). Errors show a calm pink `StickyNote` with `"Retry"` and `"Switch to offline sample"` `Button`s—never silent fallback.
+- **Fonts:** Load self-hosted `Noto Sans Kannada` dynamically on `/live/demo`.
 
 ---
 
@@ -626,8 +669,8 @@ Target: a low-end Android phone on a slow network.
 - Mobile: single column, tilts reduced to 0.5° max, ruler labels hidden, doodles hidden, bottom tab bar.
 - No `backdrop-filter`, no large blurs, no more than two box-shadow layers per element.
 - The desk is pure CSS plus about 80 text nodes for ruler labels. No background images.
-- Fonts: self-host WOFF2 subsets, `font-display: swap`, preload only display and body. Load the Indic font subset only for the language the student picked. No fonts from a CDN in the production build (offline mode later).
-- Illustrations are inline SVG, each under 4 KB. Lazy-load the 3D lab bundle only on the lab route.
+- Fonts: self-host WOFF2 subsets, `font-display: swap`, preload only display and body. Load the Indic font subset only for the language the student picked (and load `Noto Sans Kannada` only when the Kannada channel, captions, or `/live/demo` are active). No fonts from a CDN in the production build (offline mode later).
+- Illustrations are inline SVG, each under 4 KB. Lazy-load the 3D lab bundle only on the lab route, and lazy-load `livekit-client` only on the `/live` routes.
 - Safe-area insets respected on the top pill and bottom tab bar.
 
 ---

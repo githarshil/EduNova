@@ -56,6 +56,14 @@ const PIXEL_ICON_RUNS = {
     [9, 13, 1, 1, 'stroke'],
     [7, 13, 2, 1, 'stroke'],
   ],
+  live: [
+    [2, 4, 9, 1, 'hi'],
+    [1, 5, 1, 6, 'stroke'],
+    [11, 5, 1, 6, 'stroke'],
+    [2, 11, 9, 1, 'stroke'],
+    [12, 6, 3, 4, 'mint'],
+    [4, 6, 2, 2, 'glint'],
+  ],
   labs: [
     // Glowing green liquid inside conical bulb
     [2, 9, 8, 1, 'potionBright'],
@@ -167,6 +175,12 @@ export default function BottomTabs() {
         isActive ||
         location.pathname.startsWith('/lessons') ||
         location.pathname.startsWith('/practice'),
+    },
+    {
+      to: '/live',
+      label: t('nav_live', 'Live'),
+      iconName: 'live',
+      matchActive: (isActive) => isActive || location.pathname.startsWith('/live'),
     },
     {
       to: '/labs',

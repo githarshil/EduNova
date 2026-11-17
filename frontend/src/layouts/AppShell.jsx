@@ -29,6 +29,7 @@ export default function AppShell({ children }) {
 
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isMentorRoute = location.pathname.startsWith('/mentor');
+  const isLiveRoomRoute = /^\/live\/[^/]+/.test(location.pathname);
   const isLandingRoute = location.pathname === '/';
   const [isPastHero, setIsPastHero] = useState(false);
 
@@ -77,6 +78,11 @@ export default function AppShell({ children }) {
   }, [location.pathname]);
 
   useEffect(() => {
+    document.body.classList.toggle('body--live-room', isLiveRoomRoute);
+    return () => document.body.classList.remove('body--live-room');
+  }, [isLiveRoomRoute]);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       setXpPoints(0);
       return undefined;
@@ -123,7 +129,11 @@ export default function AppShell({ children }) {
 
   return (
     <ToastProvider>
-      <div className={`app-shell${isAdminRoute ? ' app-shell--flat' : ''}`}>
+      <div
+        className={`app-shell${isAdminRoute ? ' app-shell--flat' : ''}${
+          isLiveRoomRoute ? ' app-shell--live-room' : ''
+        }`}
+      >
         <Desk />
 
         <NavBar
@@ -159,7 +169,7 @@ export default function AppShell({ children }) {
           ) : null}
         </main>
 
-        {isAuthenticated ? <BottomTabs /> : null}
+        {isAuthenticated && !isLiveRoomRoute ? <BottomTabs /> : null}
 
         {isAuthenticated && !isMentorRoute ? (
           <>

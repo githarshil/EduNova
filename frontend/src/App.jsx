@@ -30,6 +30,9 @@ const NotesPage = lazy(() => import('./features/notes/NotesPage'));
 const VirtualLearningPage = lazy(() => import('./features/virtual-learning/VirtualLearningPage'));
 const TopicViewerPage = lazy(() => import('./features/virtual-learning/TopicViewerPage'));
 const VirtualLabPage = lazy(() => import('./pages/VirtualLabPage'));
+const LiveLobbyPage = lazy(() => import('./features/live/LiveLobbyPage'));
+const LiveRoomPage = lazy(() => import('./features/live/LiveRoomPage'));
+const LiveDemoPage = lazy(() => import('./features/live/LiveDemoPage'));
 
 const LearnPortalPage = lazy(() => import('./pages/learn/LearnPortalPage'));
 const SubjectHubPage = lazy(() => import('./pages/learn/SubjectHubPage'));
@@ -67,6 +70,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/live/demo" element={<LiveDemoPage />} />
 
           {/* Authenticated Student Pages */}
           <Route
@@ -104,6 +108,8 @@ export default function App() {
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/labs" element={<VirtualLabPage />} />
             <Route path="/labs/:labId" element={<VirtualLabPage />} />
+            <Route path="/live" element={<LiveLobbyPage />} />
+            <Route path="/live/:code" element={<LiveRoomPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
 

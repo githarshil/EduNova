@@ -508,13 +508,14 @@ exports.generateAiQuestions = async (req, res, next) => {
     let generatedQuestions = [];
     const apiKey = process.env.GEMINI_API_KEY;
 
-    if (apiKey) {
-      try {
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: process.env.GEMINI_CHAT_MODEL || 'gemini-1.5-flash' });
+    const parseJsonArray = (rawText) => {
+      let raw = String(rawText || '').trim();
+      if (raw.startsWith('```json')) raw = raw.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+      else if (raw.startsWith('```')) raw = raw.replace(/^```\s*/, '').replace(/```\s*$/, '');
+      return JSON.parse(raw);
+    };
 
-        const prompt = `You are an expert CBSE Class ${chapter.class_level} ${chapter.subjects?.name} question paper setter.
+    const mcqPrompt = `You are an expert CBSE Class ${chapter.class_level} ${chapter.subjects?.name} question paper setter.
 Generate exactly ${count} multiple-choice questions (MCQs) for the chapter "${chapter.title}"${topic ? ` on the subtopic "${topic}"` : ''}.
 Difficulty level: ${difficulty}.
 Based strictly on NCERT textbook standards.
@@ -533,13 +534,27 @@ Respond ONLY with a valid JSON array matching this exact schema with NO markdown
   }
 ]`;
 
-        const result = await model.generateContent(prompt);
-        let raw = result.response.text().trim();
-        if (raw.startsWith('```json')) raw = raw.replace(/^```json\s*/, '').replace(/```\s*$/, '');
-        else if (raw.startsWith('```')) raw = raw.replace(/^```\s*/, '').replace(/```\s*$/, '');
-        generatedQuestions = JSON.parse(raw);
-      } catch (geminiErr) {
-        console.warn('AI question generation fallback triggered:', geminiErr.message);
+    const { generateGroqCompletion, getGeminiApiKey, isGroqConfigured, raceAiProviders } = require('../utils/groqFallback');
+    const geminiKey = getGeminiApiKey();
+
+    if (geminiKey || isGroqConfigured()) {
+      try {
+        const winner = await raceAiProviders({
+          geminiFn: geminiKey
+            ? async () => {
+                const { GoogleGenerativeAI } = require('@google/generative-ai');
+                const genAI = new GoogleGenerativeAI(geminiKey);
+                const modelName = process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const result = await model.generateContent(mcqPrompt);
+                return { text: result.response.text(), model: modelName };
+              }
+            : null,
+          groqFn: isGroqConfigured() ? () => generateGroqCompletion({ userText: mcqPrompt }) : null
+        });
+        generatedQuestions = parseJsonArray(winner.text);
+      } catch (aiErr) {
+        console.warn('AI question generation fallback triggered:', aiErr.message);
       }
     }
 

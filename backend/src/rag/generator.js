@@ -1,8 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+const { generateGroqCompletion, getGeminiApiKey, isGroqConfigured, raceAiProviders } = require('../../utils/groqFallback');
 
-const GEMINI_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-1.5-flash';
+const GEMINI_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
 
 /**
  * Build grounded system prompt for CBSE RAG answer generation
@@ -54,7 +55,7 @@ STUDENT'S QUESTION:
  * @returns {Promise<{ answer: string, sources: Array<object>, model: string }>}
  */
 async function generateAnswer(query, retrievedChunks = [], options = {}) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
   const prompt = buildPrompt(query, retrievedChunks, options);
 
   const sources = (retrievedChunks || []).map(c => ({
@@ -65,23 +66,27 @@ async function generateAnswer(query, retrievedChunks = [], options = {}) {
     similarity: c.similarity
   }));
 
-  if (apiKey && apiKey.trim()) {
+  if (apiKey || isGroqConfigured()) {
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-
-      if (text && text.trim()) {
-        return {
-          answer: text.trim(),
-          sources,
-          model: GEMINI_MODEL
-        };
-      }
+      const winner = await raceAiProviders({
+        geminiFn: apiKey
+          ? async () => {
+              const genAI = new GoogleGenerativeAI(apiKey);
+              const modelName = process.env.GEMINI_CHAT_MODEL || GEMINI_MODEL;
+              const model = genAI.getGenerativeModel({ model: modelName });
+              const result = await model.generateContent(prompt);
+              return { text: (await result.response).text(), model: modelName };
+            }
+          : null,
+        groqFn: isGroqConfigured() ? () => generateGroqCompletion({ userText: prompt }) : null
+      });
+      return {
+        answer: winner.text,
+        sources,
+        model: `${winner.provider}:${winner.model}`
+      };
     } catch (err) {
-      console.warn('Gemini generation API error, falling back to local synthesizer:', err.message);
+      console.warn('Gemini/Groq generation error, falling back to local synthesizer:', err.message);
     }
   }
 

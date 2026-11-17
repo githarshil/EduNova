@@ -16,5 +16,27 @@ const supabaseAdmin = (supabaseUrl && supabaseServiceRoleKey)
     })
   : null;
 
-module.exports = { supabaseAdmin };
+function isSupabaseNetworkError(err) {
+  if (!err) return false;
+  const msg = String(err.message || err);
+  return (
+    err.name === 'AuthRetryableFetchError' ||
+    err.status === 0 ||
+    /fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|UND_ERR_/i.test(msg)
+  );
+}
+
+async function withSupabaseRetry(fn, retries = 1) {
+  let result = await fn();
+  for (let i = 0; i < retries; i++) {
+    if (!result?.error || !isSupabaseNetworkError(result.error)) {
+      return result;
+    }
+    await new Promise((r) => setTimeout(r, 150));
+    result = await fn();
+  }
+  return result;
+}
+
+module.exports = { supabaseAdmin, isSupabaseNetworkError, withSupabaseRetry };
 

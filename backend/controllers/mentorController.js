@@ -6,21 +6,49 @@ const { supabaseAdmin } = require('../utils/supabaseAdmin');
 const { getSaarthiSystemPrompt } = require('../src/mentor/systemPrompt');
 const { getStudentMemories, extractAndStoreFacts } = require('../src/mentor/memoryService');
 const { retrieve } = require('../src/rag/retrieval');
+const {
+  getGeminiApiKey,
+  generateGroqCompletion,
+  openGroqStream,
+  isGroqConfigured,
+  raceAiProviders
+} = require('../utils/groqFallback');
 
-// Configure Gemini Model (defaults to gemini-3.5-flash)
-const GEMINI_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash';
+// Configure Gemini Model (defaults to gemini-2.5-flash)
+const GEMINI_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
+const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-flash-latest'];
+
+function getCandidateModels() {
+  const configured = process.env.GEMINI_CHAT_MODEL || GEMINI_MODEL;
+  const seen = new Set();
+  return [configured, ...FALLBACK_MODELS].filter((m) => {
+    const clean = String(m || '').trim();
+    if (!clean || seen.has(clean)) return false;
+    seen.add(clean);
+    return true;
+  });
+}
+
+function isRetryableModelError(err) {
+  const msg = String(err?.message || '');
+  return (
+    err?.status === 503 ||
+    err?.status === 404 ||
+    /503|404|Service Unavailable|high demand|not found|is not supported/i.test(msg)
+  );
+}
 
 /**
  * Helper to initialize Gemini Generative Model with active System Instructions
  */
-function getGeminiModel(systemInstruction) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || !apiKey.trim()) {
+function getGeminiModel(systemInstruction, modelName = GEMINI_MODEL) {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
     return null;
   }
-  const genAI = new GoogleGenerativeAI(apiKey.trim());
+  const genAI = new GoogleGenerativeAI(apiKey);
   return genAI.getGenerativeModel({
-    model: GEMINI_MODEL,
+    model: modelName,
     systemInstruction: systemInstruction || undefined
   });
 }
@@ -357,46 +385,79 @@ async function processChatTurn({
     userTurnText = `${contextSegments.join('\n\n')}\n\n[STUDENT INQUIRY]:\n${effectiveContent}`;
   }
 
-  // 9. Invoke Google Gemini API (Multimodal if image is present)
+  // 9. Call BOTH Gemini and Groq in parallel and respond with whichever finishes first
   let replyText = '';
-  const geminiModel = getGeminiModel(systemPrompt);
+  const hasGeminiKey = Boolean(getGeminiApiKey());
+  const canUseGroq = isGroqConfigured() && (!cleanBase64 || Boolean(process.env.GROQ_VISION_MODEL));
 
-  if (geminiModel) {
-    try {
-      const chat = geminiModel.startChat({
-        history: geminiHistory
-      });
+  let promptPayload = userTurnText;
+  if (cleanBase64) {
+    promptPayload = [
+      {
+        inlineData: {
+          mimeType: cleanMimeType,
+          data: cleanBase64
+        }
+      },
+      userTurnText
+    ];
+  }
 
-      let promptPayload;
-      if (cleanBase64) {
-        promptPayload = [
-          {
-            inlineData: {
-              mimeType: cleanMimeType,
-              data: cleanBase64
-            }
-          },
-          userTurnText
-        ];
-      } else {
-        promptPayload = userTurnText;
-      }
-
-      const result = await chat.sendMessage(promptPayload);
-      const response = await result.response;
-      replyText = response.text().trim();
-    } catch (apiErr) {
-      console.error('Google Gemini API execution error:', apiErr.message);
-      if (apiErr.message.includes('API_KEY_INVALID') || apiErr.message.includes('key not valid')) {
-        replyText = '⚠️ **Saarthi Configuration Notice**: The configured Gemini API key appears invalid. Please verify your `GEMINI_API_KEY` setting in `backend/.env`.';
-      } else if (apiErr.message.includes('429') || apiErr.message.includes('quota') || apiErr.message.includes('RESOURCE_EXHAUSTED')) {
-        replyText = '⏳ **High Traffic**: The Gemini API quota is currently saturated. Please wait a few seconds before asking your next question.';
-      } else {
-        replyText = `I encountered an unexpected issue while communicating with Gemini (${apiErr.message.slice(0, 80)}...). Please try asking your question again in a moment.`;
+  const runGemini = async () => {
+    const candidates = getCandidateModels();
+    let lastErr = null;
+    for (let i = 0; i < candidates.length; i++) {
+      const modelName = candidates[i];
+      try {
+        const geminiModel = getGeminiModel(systemPrompt, modelName);
+        const chat = geminiModel.startChat({ history: geminiHistory });
+        const result = await chat.sendMessage(promptPayload);
+        const text = (await result.response).text().trim();
+        if (text) return { text, model: modelName };
+      } catch (apiErr) {
+        lastErr = apiErr;
+        console.warn(`Gemini model "${modelName}" failed:`, apiErr.message);
+        if (!isRetryableModelError(apiErr) || i === candidates.length - 1) {
+          throw apiErr;
+        }
       }
     }
-  } else {
-    replyText = '⚠️ **Saarthi AI Core Offline**: `GEMINI_API_KEY` is not configured in the backend environment. Please set your key in `backend/.env` to activate live Gemini AI.';
+    throw lastErr || new Error('Gemini returned empty response');
+  };
+
+  const runGroq = () =>
+    generateGroqCompletion({
+      systemInstruction: systemPrompt,
+      history: geminiHistory,
+      userText: userTurnText,
+      imageBase64: cleanBase64,
+      mimeType: cleanMimeType
+    });
+
+  try {
+    const winner = await raceAiProviders({
+      geminiFn: hasGeminiKey ? runGemini : null,
+      groqFn: canUseGroq ? runGroq : null
+    });
+    replyText = winner.text;
+    console.info(`[mentor] Answered first by ${winner.provider} (${winner.model})`);
+  } catch (raceErr) {
+    if (raceErr.code === 'NO_AI_PROVIDER') {
+      replyText =
+        '⚠️ **Saarthi AI Core Offline**: Neither `GEMINI_API_KEY` nor `GROQ_API_KEY` is configured in `backend/.env`. Please set at least one key to activate live AI.';
+    } else {
+      const details = raceErr.message || 'Both Gemini and Groq failed to respond.';
+      console.error('All AI providers failed:', details);
+      if (/API_KEY_INVALID|key not valid|Invalid API Key/i.test(details)) {
+        replyText =
+          '⚠️ **Saarthi Configuration Notice**: The configured AI API keys appear invalid. Please verify `GEMINI_API_KEY` and `GROQ_API_KEY` in `backend/.env`.';
+      } else if (/429|quota|RESOURCE_EXHAUSTED|rate/i.test(details)) {
+        replyText =
+          '⏳ **High Traffic**: Both Gemini and Groq rate limits were hit. Please wait a few seconds before asking your next question.';
+      } else {
+        replyText = `I encountered an unexpected issue while communicating with the AI services (${details.slice(0, 120)}...). Please try asking your question again in a moment.`;
+      }
+    }
   }
 
   // 10. Citations metadata
@@ -691,26 +752,106 @@ exports.streamChat = async (req, res) => {
       currentTopic
     });
 
-    const geminiModel = getGeminiModel(systemPrompt);
+    const hasGeminiKey = Boolean(getGeminiApiKey());
+    const hasGroqKey = isGroqConfigured();
     let fullReply = '';
 
-    if (geminiModel) {
-      try {
-        const chat = geminiModel.startChat({ history: geminiHistory });
-        const resultStream = await chat.sendMessageStream(content.trim());
-
-        for await (const chunk of resultStream.stream) {
-          const chunkText = chunk.text();
-          fullReply += chunkText;
-          res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+    // Open both Gemini & Groq streams in parallel; whichever yields the first token wins
+    async function* openGeminiStream() {
+      const candidates = getCandidateModels();
+      let lastErr = null;
+      for (let i = 0; i < candidates.length; i++) {
+        const modelName = candidates[i];
+        try {
+          const geminiModel = getGeminiModel(systemPrompt, modelName);
+          const chat = geminiModel.startChat({ history: geminiHistory });
+          const resultStream = await chat.sendMessageStream(content.trim());
+          let emittedAny = false;
+          for await (const chunk of resultStream.stream) {
+            const chunkText = chunk.text();
+            if (chunkText) {
+              emittedAny = true;
+              yield chunkText;
+            }
+          }
+          if (emittedAny) return;
+        } catch (streamErr) {
+          lastErr = streamErr;
+          console.warn(`Gemini streaming model "${modelName}" failed:`, streamErr.message);
+          if (!isRetryableModelError(streamErr) || i === candidates.length - 1) {
+            throw streamErr;
+          }
         }
-      } catch (streamErr) {
-        console.error('Gemini streaming error:', streamErr);
-        res.write(`data: ${JSON.stringify({ error: streamErr.message })}\n\n`);
       }
-    } else {
-      fullReply = '⚠️ Saarthi AI is offline: GEMINI_API_KEY is not configured in backend/.env.';
+      throw lastErr || new Error('Gemini stream produced no output');
+    }
+
+    const streamRacers = [];
+    const groqAbort = new AbortController();
+    let geminiGen = null;
+    let groqGen = null;
+
+    if (hasGeminiKey) {
+      geminiGen = openGeminiStream();
+      const p = (async () => {
+        while (true) {
+          const step = await geminiGen.next();
+          if (step.done) throw new Error('Gemini stream ended empty');
+          if (step.value) return { provider: 'gemini', firstChunk: step.value, gen: geminiGen };
+        }
+      })();
+      p.catch(() => {});
+      streamRacers.push(p);
+    }
+
+    if (hasGroqKey) {
+      groqGen = openGroqStream({
+        systemInstruction: systemPrompt,
+        history: geminiHistory,
+        userText: content.trim(),
+        signal: groqAbort.signal
+      });
+      const p = (async () => {
+        while (true) {
+          const step = await groqGen.next();
+          if (step.done) throw new Error('Groq stream ended empty');
+          if (step.value) return { provider: 'groq', firstChunk: step.value, gen: groqGen };
+        }
+      })();
+      p.catch(() => {});
+      streamRacers.push(p);
+    }
+
+    if (streamRacers.length === 0) {
+      fullReply = '⚠️ Saarthi AI is offline: Neither GEMINI_API_KEY nor GROQ_API_KEY is configured in backend/.env.';
       res.write(`data: ${JSON.stringify({ text: fullReply })}\n\n`);
+    } else {
+      try {
+        const winner = await Promise.any(streamRacers);
+        console.info(`[mentor/stream] Winning first token from ${winner.provider}`);
+
+        // Cancel loser stream cleanly
+        if (winner.provider === 'gemini') {
+          groqAbort.abort();
+          groqGen?.return?.().catch(() => {});
+        } else {
+          geminiGen?.return?.().catch(() => {});
+        }
+
+        fullReply += winner.firstChunk;
+        res.write(`data: ${JSON.stringify({ text: winner.firstChunk })}\n\n`);
+
+        for await (const nextChunk of winner.gen) {
+          fullReply += nextChunk;
+          res.write(`data: ${JSON.stringify({ text: nextChunk })}\n\n`);
+        }
+      } catch (aggErr) {
+        groqAbort.abort();
+        console.error('All AI streams failed:', aggErr.message);
+        if (!fullReply) {
+          res.write(`data: ${JSON.stringify({ error: 'All AI services failed to stream a response.' })}\n\n`);
+        }
+      }
     }
 
     // 5. Store completed response in database

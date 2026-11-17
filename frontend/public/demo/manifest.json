@@ -1,0 +1,91 @@
+{
+  "generatedAt": "2026-11-17T10:09:14.584Z",
+  "source": "sarvam-cached",
+  "note": "Pre-recorded offline sample sentences. Every Kannada translation is marked needsReview: true.",
+  "items": [
+    {
+      "seq": 1,
+      "hindi": "नमस्ते बच्चों, आज हम बल और गति के बारे में सीखेंगे।",
+      "kannada": "ನಮಸ್ಕಾರ ಮಕ್ಕಳೇ, ಇಂದು ನಾವು ಬಲ ಮತ್ತು ಚಲನೆಯ ಬಗ್ಗೆ ಕಲಿಯೋಣ.",
+      "needsReview": true,
+      "audioUrl": "/demo/sentence-1.wav",
+      "timings": {
+        "sttMs": 0,
+        "translateMs": 2664,
+        "ttsMs": 6801,
+        "totalMs": 9465
+      },
+      "source": "sarvam-cached"
+    },
+    {
+      "seq": 2,
+      "hindi": "वेग का मतलब है किसी वस्तु की गति और उसकी दिशा।",
+      "kannada": "ವೇಗವು ಕಾಲಾನಂತರದಲ್ಲಿ ಸ್ಥಾನದಲ್ಲಿನ ಬದಲಾವಣೆಯಾಗಿದೆ.",
+      "needsReview": true,
+      "audioUrl": "/demo/sentence-2.wav",
+      "timings": {
+        "sttMs": 0,
+        "translateMs": 1388,
+        "ttsMs": 2008,
+        "totalMs": 3396
+      },
+      "source": "sarvam-cached"
+    },
+    {
+      "seq": 3,
+      "hindi": "पौधे सूर्य की रोशनी से अपना भोजन बनाते हैं, इसे प्रकाश संश्लेषण कहते हैं।",
+      "kannada": "ಸಸ್ಯಗಳು ಸೂರ್ಯನ ಬೆಳಕಿನ ಶಕ್ತಿಯನ್ನು ಬಳಸಿಕೊಂಡು ತಮ್ಮದೇ ಆದ ಆಹಾರವನ್ನು ತಯಾರಿಸುತ್ತವೆ, ಇದನ್ನು ದ್ಯುತಿಸಂಶ್ಲೇಷಣೆ ಎಂದು ಕರೆಯಲಾಗುತ್ತದೆ.",
+      "needsReview": true,
+      "audioUrl": "/demo/sentence-3.wav",
+      "timings": {
+        "sttMs": 0,
+        "translateMs": 1578,
+        "ttsMs": 3641,
+        "totalMs": 5219
+      },
+      "source": "sarvam-cached"
+    },
+    {
+      "seq": 4,
+      "hindi": "पानी में हाइड्रोजन और ऑक्सीजन के परमाणु होते हैं।",
+      "kannada": "ನೀರಿನಲ್ಲಿ ಹೈಡ್ರೋಜನ್ ಮತ್ತು ಆಮ್ಲಜನಕದ ಪರಮಾಣುಗಳು ಇರುತ್ತವೆ.",
+      "needsReview": true,
+      "audioUrl": "/demo/sentence-4.wav",
+      "timings": {
+        "sttMs": 0,
+        "translateMs": 1264,
+        "ttsMs": 2233,
+        "totalMs": 3497
+      },
+      "source": "sarvam-cached"
+    },
+    {
+      "seq": 5,
+      "hindi": "किसी त्रिभुज के तीनों कोणों का योग एक सौ अस्सी डिग्री होता है।",
+      "kannada": "ತ್ರಿಕೋಣದ ಮೂರು ಕೋನಗಳ ಮೊತ್ತವು ನೂರ ಎಂಬತ್ತು ಡಿಗ್ರಿಗಳಾಗಿರುತ್ತದೆ.",
+      "needsReview": true,
+      "audioUrl": "/demo/sentence-5.wav",
+      "timings": {
+        "sttMs": 0,
+        "translateMs": 1532,
+        "ttsMs": 4289,
+        "totalMs": 5821
+      },
+      "source": "sarvam-cached"
+    },
+    {
+      "seq": 6,
+      "hindi": "अब आप सब एक छोटा सा प्रश्न हल करके देखिए।",
+      "kannada": "ಈಗ, ನೀವೆಲ್ಲರೂ ಒಂದು ಸಣ್ಣ ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಹರಿಸಿ.",
+      "needsReview": true,
+      "audioUrl": "/demo/sentence-6.wav",
+      "timings": {
+        "sttMs": 0,
+        "translateMs": 1864,
+        "ttsMs": 4501,
+        "totalMs": 6365
+      },
+      "source": "sarvam-cached"
+    }
+  ]
+}

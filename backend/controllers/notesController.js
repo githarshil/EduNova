@@ -6,8 +6,9 @@ const { supabaseAdmin } = require('../utils/supabaseAdmin');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { chunkText } = require('../src/rag/chunker');
 const { getEmbedding } = require('../src/rag/embeddings');
+const { generateGroqCompletion, isGroqConfigured } = require('../utils/groqFallback');
 
-const GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-1.5-flash';
+const GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL || process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash';
 
 /**
  * GET /api/notes
@@ -242,8 +243,14 @@ exports.performOCR = async (req, res, next) => {
     const apiKey = process.env.GEMINI_API_KEY;
 
     let extractedText = '';
+    const ocrPrompt = `You are a high-accuracy OCR assistant for CBSE Class 10 & 12 Science and Mathematics students.
+Transcribe the handwritten text from this image faithfully.
+Rules:
+1. Transcribe ALL handwritten notes, headings, bullet points, and numbered lists verbatim.
+2. Format mathematical and chemical formulas using clean Markdown/KaTeX where appropriate (e.g. $F = ma$, $H_2O$, $v = u + at$).
+3. Do NOT add conversational banter, intro, or outro. Return ONLY the transcribed content in clean Markdown.`;
 
-    if (apiKey) {
+    if (apiKey && apiKey.trim()) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: GEMINI_VISION_MODEL });
@@ -255,17 +262,23 @@ exports.performOCR = async (req, res, next) => {
           }
         };
 
-        const prompt = `You are a high-accuracy OCR assistant for CBSE Class 10 & 12 Science and Mathematics students.
-Transcribe the handwritten text from this image faithfully.
-Rules:
-1. Transcribe ALL handwritten notes, headings, bullet points, and numbered lists verbatim.
-2. Format mathematical and chemical formulas using clean Markdown/KaTeX where appropriate (e.g. $F = ma$, $H_2O$, $v = u + at$).
-3. Do NOT add conversational banter, intro, or outro. Return ONLY the transcribed content in clean Markdown.`;
-
-        const result = await model.generateContent([prompt, imagePart]);
+        const result = await model.generateContent([ocrPrompt, imagePart]);
         extractedText = result.response.text().trim();
       } catch (geminiErr) {
         console.warn('Gemini Vision OCR error:', geminiErr.message);
+      }
+    }
+
+    if (!extractedText && isGroqConfigured()) {
+      try {
+        const groqRes = await generateGroqCompletion({
+          userText: ocrPrompt,
+          imageBase64: cleanBase64,
+          mimeType
+        });
+        extractedText = groqRes.text;
+      } catch (groqErr) {
+        console.warn('Groq Vision OCR fallback error:', groqErr.message);
       }
     }
 

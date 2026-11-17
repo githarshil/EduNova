@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
-const EMBEDDING_MODEL_NAME = process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
+const EMBEDDING_MODEL_NAME = process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001';
 const EMBEDDING_DIMENSION = 768;
 
 const STOP_WORDS = new Set([
@@ -130,7 +130,10 @@ async function getEmbedding(text) {
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: EMBEDDING_MODEL_NAME });
-      const result = await model.embedContent(cleanText);
+      const embedReq = EMBEDDING_MODEL_NAME.includes('gemini-embedding-001')
+        ? { content: { parts: [{ text: cleanText }] }, outputDimensionality: EMBEDDING_DIMENSION }
+        : cleanText;
+      const result = await model.embedContent(embedReq);
       const values = result.embedding?.values;
 
       if (values && values.length === EMBEDDING_DIMENSION) {

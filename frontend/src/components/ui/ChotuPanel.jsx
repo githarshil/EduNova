@@ -1156,7 +1156,10 @@ export default function ChotuPanel({ open, onClose }) {
         headers.Authorization = `Bearer ${token}`;
       }
 
-      const response = await fetch('/api/mentor/chat', {
+      const rawBase = import.meta.env.VITE_API_URL;
+      const apiBase = rawBase ? `${rawBase.replace(/\/api\/?$/, '')}/api` : '/api';
+
+      const response = await fetch(`${apiBase}/mentor/chat`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -1166,7 +1169,20 @@ export default function ChotuPanel({ open, onClose }) {
         }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await response.json()
+        : { error: response.status === 401 ? 'Please log in first to chat with Chotu.' : `Server error (${response.status}).` };
+
+      if (!response.ok) {
+        const msg =
+          response.status === 401
+            ? 'Please log in first so Chotu can reply.'
+            : data.reply || data.message || data.error || `Request failed (${response.status}).`;
+        setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
+        return;
+      }
+
       if (data.sessionId) {
         setSessionId(data.sessionId);
       }
