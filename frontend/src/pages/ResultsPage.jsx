@@ -10,7 +10,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import api, { apiUrl } from '../services/api';
 import {
   HeroCard,
   SectionHeader,
@@ -42,7 +42,7 @@ export default function ResultsPage() {
         setLoading(true);
         const [resultsRes, weakRes] = await Promise.all([
           api.getResults().catch(() => []),
-          fetch('/api/weak-topics', {
+          fetch(apiUrl('/api/weak-topics'), {
             headers: token ? { Authorization: `Bearer ${token}` } : {},
           })
             .then((r) => r.json())

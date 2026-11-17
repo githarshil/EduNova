@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { apiUrl } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import {
   Play,
@@ -77,7 +78,7 @@ export default function VideoPlayerPage() {
     async function loadVideos() {
       try {
         setLoading(true);
-        const res = await fetch('/api/videos');
+        const res = await fetch(apiUrl('/api/videos'));
         const data = await res.json();
         if (data.success && Array.isArray(data.videos) && data.videos.length > 0) {
           const ohmVideo =

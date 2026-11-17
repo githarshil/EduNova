@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { apiUrl } from '../services/api';
 import { Hash, Send, Bot, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -27,7 +28,7 @@ export default function CommunityPage() {
   useEffect(() => {
     async function loadChannels() {
       try {
-        const res = await fetch('/api/community/channels');
+        const res = await fetch(apiUrl('/api/community/channels'));
         const data = await res.json();
         if (data.success && data.channels) {
           setChannels(data.channels);
@@ -41,7 +42,7 @@ export default function CommunityPage() {
 
   const fetchMessages = async (slug) => {
     try {
-      const res = await fetch(`/api/community/channels/${slug}/messages`);
+      const res = await fetch(apiUrl(`/api/community/channels/${slug}/messages`));
       const data = await res.json();
       if (data.success) {
         setMessages(data.messages || []);
@@ -73,7 +74,7 @@ export default function CommunityPage() {
     try {
       setSending(true);
       const authToken = token || localStorage.getItem('token');
-      const res = await fetch(`/api/community/channels/${activeChannel}/messages`, {
+      const res = await fetch(apiUrl(`/api/community/channels/${activeChannel}/messages`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { apiUrl } from '../../services/api';
 import SaarthiPageView from './SaarthiPageView';
 
 export default function SaarthiPage() {
@@ -131,7 +132,7 @@ export default function SaarthiPage() {
     try {
       setLoadingSessions(true);
       const token = localStorage.getItem('token');
-      const url = `/api/mentor/sessions?mode=${targetMode}`;
+      const url = apiUrl(`/api/mentor/sessions?mode=${targetMode}`);
       const res = await fetch(url, {
         headers: { ...(token && { Authorization: `Bearer ${token}` }) }
       });
@@ -189,7 +190,7 @@ export default function SaarthiPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/mentor/sessions/${session.id}`, {
+      const res = await fetch(apiUrl(`/api/mentor/sessions/${session.id}`), {
         headers: { ...(token && { Authorization: `Bearer ${token}` }) }
       });
       const data = await res.json();
@@ -251,7 +252,7 @@ export default function SaarthiPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/mentor/sessions/${sessionId}`, {
+      const res = await fetch(apiUrl(`/api/mentor/sessions/${sessionId}`), {
         method: 'DELETE',
         headers: { ...(token && { Authorization: `Bearer ${token}` }) }
       });
@@ -276,7 +277,7 @@ export default function SaarthiPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/mentor/sessions/${sessionId}`, {
+      const res = await fetch(apiUrl(`/api/mentor/sessions/${sessionId}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -307,7 +308,7 @@ export default function SaarthiPage() {
     try {
       setLoadingMemories(true);
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/mentor/memories', {
+      const res = await fetch(apiUrl('/api/mentor/memories'), {
         headers: { ...(token && { Authorization: `Bearer ${token}` }) }
       });
       const data = await res.json();
@@ -324,7 +325,7 @@ export default function SaarthiPage() {
   const deleteMemory = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`/api/mentor/memories/${id}`, {
+      await fetch(apiUrl(`/api/mentor/memories/${id}`), {
         method: 'DELETE',
         headers: { ...(token && { Authorization: `Bearer ${token}` }) }
       });
@@ -405,7 +406,7 @@ export default function SaarthiPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/mentor/chat', {
+      const response = await fetch(apiUrl('/api/mentor/chat'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

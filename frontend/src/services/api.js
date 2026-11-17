@@ -8,6 +8,16 @@ const rawUrl = import.meta.env.VITE_API_URL;
 const BASE_URL = rawUrl ? `${rawUrl.replace(/\/api\/?$/, '')}/api` : '/api';
 
 /**
+ * Resolve an API endpoint path against the configured backend origin.
+ * Accepts '/mentor/chat' or '/api/mentor/chat'.
+ */
+export function apiUrl(path) {
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  const withoutPrefix = normalized.replace(/^\/api(?=\/|$)/, '') || '/';
+  return `${BASE_URL}${withoutPrefix}`;
+}
+
+/**
  * Universal request wrapper
  * @param {string} endpoint - API path (e.g. '/health', '/auth/login')
  * @param {object} options - Fetch options (method, headers, body)

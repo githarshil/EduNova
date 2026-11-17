@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, CheckCircle2, Bot, Sparkles, HelpCircle, Award, Check, X } from 'lucide-react';
-import { getVirtualTopic, submitVirtualTopicProgress } from '../../services/api';
+import { getVirtualTopic, submitVirtualTopicProgress, apiUrl } from '../../services/api';
 import ExternalSimulationFrame from '../../components/ExternalSimulationFrame';
 import RayOpticsSimulation from './RayOpticsSimulation';
 import MoleculeViewerSimulation from './MoleculeViewerSimulation';
@@ -44,7 +44,7 @@ export default function TopicViewerPage() {
       } catch (err) {
         console.error('Fetch topic error via api, fallback to fetch:', err);
         try {
-          const res = await fetch(`/api/virtual/${topicSlug}`);
+          const res = await fetch(apiUrl(`/api/virtual/${topicSlug}`));
           const fallbackData = await res.json();
           if (fallbackData.success) {
             setTopic(fallbackData.data);
@@ -79,7 +79,7 @@ export default function TopicViewerPage() {
     // Record progress to backend
     try {
       const token = localStorage.getItem('token');
-      await fetch(`/api/virtual/${topicSlug}/progress`, {
+      await fetch(apiUrl(`/api/virtual/${topicSlug}/progress`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

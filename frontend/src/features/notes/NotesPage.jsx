@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from '../../services/api';
 import {
   PenTool,
   FileText,
@@ -42,7 +43,7 @@ export default function NotesPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/notes', {
+      const res = await fetch(apiUrl('/api/notes'), {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await res.json();
@@ -68,7 +69,7 @@ export default function NotesPage() {
       setSaving(true);
       setStatusMsg(null);
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/notes', {
+      const res = await fetch(apiUrl('/api/notes'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,7 +106,7 @@ export default function NotesPage() {
     if (!window.confirm('Delete this note? It will also remove its AI search reference.')) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/notes/${noteId}`, {
+      const res = await fetch(apiUrl(`/api/notes/${noteId}`), {
         method: 'DELETE',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });

@@ -262,7 +262,49 @@ iframe[title="Powered by Netlify"] {
   font-size: 1rem;
   line-height: 1.6;
   word-break: break-word;
+  overflow-wrap: anywhere;
   color: var(--ink);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.stem-formatted-message > :first-child {
+  margin-top: 0;
+}
+
+.stem-formatted-message > :last-child {
+  margin-bottom: 0;
+}
+
+.stem-formatted-message hr {
+  border: 0;
+  border-top: 1px dashed var(--paper-border-strong);
+  margin: var(--sp-3) 0;
+}
+
+.stem-formatted-message.is-compact {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.stem-formatted-message.is-compact h1,
+.stem-formatted-message.is-compact h2 {
+  font-size: 0.98rem;
+}
+
+.stem-formatted-message.is-compact h3,
+.stem-formatted-message.is-compact h4 {
+  font-size: 0.9rem;
+}
+
+.stem-formatted-message.is-compact .stem-table {
+  min-width: 0;
+  font-size: 0.8rem;
+}
+
+.stem-formatted-message.is-compact .stem-table th,
+.stem-formatted-message.is-compact .stem-table td {
+  padding: 5px 8px;
 }
 
 .stem-formatted-message.is-user {
@@ -415,10 +457,14 @@ iframe[title="Powered by Netlify"] {
 }
 
 .katex-display-wrapper {
-  margin: var(--sp-3) 0;
-  padding: var(--sp-2) 0;
+  margin: var(--sp-2) 0;
+  padding: var(--sp-2) var(--sp-3);
   overflow-x: auto;
+  max-width: 100%;
   text-align: center;
+  background-color: var(--paper-field);
+  border: 1px solid var(--paper-border-warm);
+  border-radius: var(--r-sm);
 }
 
 .katex-inline-wrapper {

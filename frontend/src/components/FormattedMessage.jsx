@@ -19,7 +19,7 @@ marked.setOptions({
  * - Provides interactive 1-click 'Copy' button for code blocks
  * - Sanitizes rendered HTML via DOMPurify to prevent XSS while allowing KaTeX tags
  */
-export default function FormattedMessage({ content, isUser = false }) {
+export default function FormattedMessage({ content, isUser = false, compact = false }) {
   const containerRef = useRef(null);
 
   const htmlContent = useMemo(() => {
@@ -68,7 +68,8 @@ export default function FormattedMessage({ content, isUser = false }) {
     // 3. Parse Markdown with marked
     let parsedHtml = marked.parse(text);
 
-    // 4. Wrap tables in responsive horizontal-scroll containers
+    // 4. Unwrap paragraph tags around standalone display math blocks and style tables
+    parsedHtml = parsedHtml.replace(/<p>\s*(%%MATH_BLOCK_\d+%%)\s*<\/p>/g, '$1');
     parsedHtml = parsedHtml.replace(
       /<table>/g,
       '<div class="stem-table-wrapper"><table class="stem-table">'
@@ -108,6 +109,7 @@ export default function FormattedMessage({ content, isUser = false }) {
         const rendered = katex.renderToString(math, {
           displayMode: true,
           throwOnError: false,
+          strict: false,
           output: 'htmlAndMathml'
         });
         return `<div class="katex-display-wrapper">${rendered}</div>`;
@@ -123,6 +125,7 @@ export default function FormattedMessage({ content, isUser = false }) {
         const rendered = katex.renderToString(math, {
           displayMode: false,
           throwOnError: false,
+          strict: false,
           output: 'htmlAndMathml'
         });
         return `<span class="katex-inline-wrapper">${rendered}</span>`;
@@ -131,16 +134,18 @@ export default function FormattedMessage({ content, isUser = false }) {
       }
     });
 
-    // 7. Sanitize with DOMPurify allowing KaTeX and custom tags/attributes
+    // 7. Sanitize with DOMPurify allowing KaTeX, MathML, SVG (for roots/brackets), and custom tags/attributes
     const cleanHtml = DOMPurify.sanitize(parsedHtml, {
       ADD_TAGS: [
         'math', 'annotation', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub',
         'mfrac', 'mover', 'munder', 'msqrt', 'mroot', 'mtable', 'mtr', 'mtd',
-        'mspace', 'mtext', 'mpadded', 'mphantom', 'mstyle', 'button', 'span', 'div'
+        'mspace', 'mtext', 'mpadded', 'mphantom', 'mstyle', 'button', 'span', 'div',
+        'svg', 'path', 'line', 'rect', 'g'
       ],
       ADD_ATTR: [
         'aria-hidden', 'encoding', 'display', 'xmlns', 'viewBox', 'width', 'height',
-        'd', 'fill', 'stroke', 'stroke-width', 'data-code', 'class', 'style', 'target', 'title'
+        'preserveAspectRatio', 'x1', 'y1', 'x2', 'y2', 'x', 'y', 'd', 'fill',
+        'stroke', 'stroke-width', 'data-code', 'class', 'style', 'target', 'title'
       ]
     });
 
@@ -172,7 +177,7 @@ export default function FormattedMessage({ content, isUser = false }) {
   return (
     <div
       ref={containerRef}
-      className={`stem-formatted-message ${isUser ? 'is-user' : 'is-assistant'}`}
+      className={`stem-formatted-message ${isUser ? 'is-user' : 'is-assistant'}${compact ? ' is-compact' : ''}`}
       dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );

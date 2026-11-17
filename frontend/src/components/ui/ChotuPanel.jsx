@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import FormattedMessage from '../FormattedMessage';
+import { apiUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { createPixelBuffer, clamp } from '../notebooks/pixelEngine';
 import Paperclip from './Paperclip';
@@ -1156,10 +1158,7 @@ export default function ChotuPanel({ open, onClose }) {
         headers.Authorization = `Bearer ${token}`;
       }
 
-      const rawBase = import.meta.env.VITE_API_URL;
-      const apiBase = rawBase ? `${rawBase.replace(/\/api\/?$/, '')}/api` : '/api';
-
-      const response = await fetch(`${apiBase}/mentor/chat`, {
+      const response = await fetch(apiUrl('/api/mentor/chat'), {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -1345,14 +1344,14 @@ export default function ChotuPanel({ open, onClose }) {
                 body
                 rotation={msg.role === 'user' ? '0.6deg' : '-0.5deg'}
                 style={{
-                  maxWidth: '90%',
+                  maxWidth: '92%',
+                  minWidth: 0,
                   padding: '10px 12px',
+                  overflowWrap: 'anywhere',
                 }}
               >
                 {idx === 0 && msg.role === 'assistant' ? <Paperclip /> : null}
-                <p className="type-small" style={{ whiteSpace: 'pre-wrap' }}>
-                  {msg.content}
-                </p>
+                <FormattedMessage content={msg.content} isUser={msg.role === 'user'} compact />
                 {msg.sources?.length ? (
                   <div
                     style={{

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { apiUrl } from '../../services/api';
 import {
   PenTool,
   Download,
@@ -358,7 +359,7 @@ export default function HandwritingGenerator({ initialText = '', initialTitle = 
       const reader = new FileReader();
       reader.onload = async () => {
         try {
-          const res = await fetch('/api/notes/ocr', {
+          const res = await fetch(apiUrl('/api/notes/ocr'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -405,7 +406,7 @@ export default function HandwritingGenerator({ initialText = '', initialTitle = 
       const canvas = canvasRef.current;
       const imageUrl = canvas ? canvas.toDataURL('image/png') : null;
 
-      const res = await fetch('/api/notes', {
+      const res = await fetch(apiUrl('/api/notes'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -228,7 +228,7 @@ export default function SaarthiPageView({
                 tone={isUser ? 'blue' : 'yellow'}
                 body
                 rotation={isUser ? '0.4deg' : '-0.3deg'}
-                style={{ maxWidth: '88%', padding: '12px 16px' }}
+                style={{ maxWidth: '88%', minWidth: 0, padding: '12px 16px', overflowWrap: 'anywhere' }}
               >
                 {!isUser && msgIdx === 0 ? <NotePaperclip /> : null}
                 {imageAttachment?.dataUrl ? (
