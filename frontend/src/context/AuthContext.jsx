@@ -39,15 +39,21 @@ export function AuthProvider({ children }) {
             // Keep existing session user if network slow
           }
         } else if (!session && token && mounted) {
-          // If token in localStorage but Supabase session empty, verify with backend
+          // If token in localStorage but Supabase session empty, verify with backend when online
+          if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            return;
+          }
           try {
             const res = await api.getMe();
             if (res && res.user && mounted) {
               setUser(res.user);
               localStorage.setItem('user', JSON.stringify(res.user));
             }
-          } catch {
-            if (mounted) logout();
+          } catch (err) {
+            // Preserve cached offline session on network outage or transient 5xx; clear only on 401/403
+            if (mounted && (err?.status === 401 || err?.status === 403)) {
+              logout();
+            }
           }
         }
       } catch (err) {

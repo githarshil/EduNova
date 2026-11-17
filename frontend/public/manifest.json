@@ -1,18 +1,65 @@
 {
+  "id": "/",
   "short_name": "EVidya",
-  "name": "EVidya - CBSE Class 10 & 12 Learning",
-  "description": "Interactive STEM Education Platform with 3D Virtual Labs, Saarthi AI Mentor, and Practice Tests",
+  "name": "EVidya — Interactive STEM Notebook",
+  "description": "Offline-first CBSE Class 10 & 12 STEM Notebook with 3D Virtual Labs, Chotu AI Mentor, and Live Classes",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/icons/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "start_url": "/dashboard",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#2563EB",
-  "background_color": "#FFFFFF",
-  "orientation": "portrait"
+  "display_override": ["standalone", "minimal-ui"],
+  "theme_color": "#052e27",
+  "background_color": "#052e27",
+  "orientation": "any",
+  "categories": ["education"],
+  "shortcuts": [
+    {
+      "name": "Home Notebook",
+      "short_name": "Home",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Virtual Labs",
+      "short_name": "Labs",
+      "url": "/labs",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Smart Notes",
+      "short_name": "Notes",
+      "url": "/notes",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
 }
-

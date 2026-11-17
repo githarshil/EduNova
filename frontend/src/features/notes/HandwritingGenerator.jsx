@@ -553,8 +553,8 @@ export default function HandwritingGenerator({ initialText = '', initialTitle = 
                   aria-label={c.name}
                   aria-pressed={inkChoice === c.id ? 'true' : 'false'}
                   style={{
-                    width: '32px',
-                    height: '32px',
+                    width: '44px',
+                    height: '44px',
                     borderRadius: '50%',
                     background: `var(${c.token})`,
                     border: inkChoice === c.id ? '3px solid var(--amber-400)' : '2px solid var(--paper-edge)',

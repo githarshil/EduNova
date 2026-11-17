@@ -11,6 +11,9 @@ import {
   Video as VideoIcon,
   FileText,
   Clock,
+  Download,
+  ExternalLink,
+  BookOpen,
 } from 'lucide-react';
 import {
   HeroCard,
@@ -23,10 +26,37 @@ import {
   resolveSubjectKey,
 } from '../components/ui';
 
+const OHM_FALLBACK_VIDEO = {
+  id: 'vid_physics_electricity',
+  title: "Ohm's Law & Circuit Resistance Explained",
+  subject: 'Physics',
+  classLevel: 10,
+  chapterTitle: 'Electricity',
+  durationSeconds: 30,
+  videoUrl: '/media/ohmslaw.mp4',
+  videoFileName: 'ohmslaw.mp4',
+  notesUrl: '/media/ohmslawnotes.pdf',
+  notesFileName: 'ohmslawnotes.pdf',
+  notesTitle: "Ohm's Law Study Notes (PDF)",
+  timestamps: [
+    { time: 0, title: 'Introduction to Drift Velocity & Charge Flow' },
+    { time: 8, title: "Ohm's Law: V = IR Principle" },
+    { time: 18, title: 'Interactive Concept Checkpoint' },
+    { time: 24, title: "Joule Heating & Filaments (H = I²Rt)" },
+  ],
+  checkpoint: {
+    time: 18,
+    question: 'According to Ohm’s law, if the length of a wire is doubled with uniform cross-section, what happens to its resistance?',
+    options: ['Halved', 'Doubles (R ∝ L)', 'Remains identical', 'Quadruples'],
+    correctIndex: 1,
+    explanation: 'Resistance R = ρL/A. When length L is doubled while area A stays constant, resistance doubles.',
+  },
+  transcript: `Electric current is the net flow of electric charges through a conductor. In a metallic wire, free electrons drift with small velocities under an applied potential difference. Ohm's Law states V = IR. Higher resistance leads to greater Joule dissipation as heat.`,
+};
+
 export default function VideoPlayerPage() {
   const navigate = useNavigate();
 
-  const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +65,7 @@ export default function VideoPlayerPage() {
   const [duration, setDuration] = useState(120);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [activeTab, setActiveTab] = useState('chapters');
+  const [activeTab, setActiveTab] = useState('notes');
 
   const [activeCheckpoint, setActiveCheckpoint] = useState(null);
   const [checkpointAnswered, setCheckpointAnswered] = useState(false);
@@ -49,12 +79,21 @@ export default function VideoPlayerPage() {
         setLoading(true);
         const res = await fetch('/api/videos');
         const data = await res.json();
-        if (data.success && data.videos) {
-          setVideos(data.videos);
-          setSelectedVideo(data.videos[0]);
+        if (data.success && Array.isArray(data.videos) && data.videos.length > 0) {
+          const ohmVideo =
+            data.videos.find((v) => v.id === 'vid_physics_electricity') || data.videos[0];
+          setSelectedVideo({
+            ...OHM_FALLBACK_VIDEO,
+            ...ohmVideo,
+            videoUrl: '/media/ohmslaw.mp4',
+            notesUrl: ohmVideo.notesUrl || '/media/ohmslawnotes.pdf',
+          });
+        } else {
+          setSelectedVideo(OHM_FALLBACK_VIDEO);
         }
       } catch (err) {
-        console.error('Failed to load videos:', err);
+        console.error('Failed to load videos, using local Ohm lesson:', err);
+        setSelectedVideo(OHM_FALLBACK_VIDEO);
       } finally {
         setLoading(false);
       }
@@ -167,7 +206,8 @@ export default function VideoPlayerPage() {
             <video
               ref={videoRef}
               src={selectedVideo.videoUrl}
-              poster={selectedVideo.thumbnailUrl}
+              playsInline
+              preload="metadata"
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={() => setDuration(videoRef.current?.duration || selectedVideo.durationSeconds)}
               onPlay={() => setIsPlaying(true)}
@@ -281,7 +321,7 @@ export default function VideoPlayerPage() {
           </div>
         </PaperCard>
 
-        {/* Right: Metadata, Chapters & Library */}
+        {/* Right: Metadata, Downloads & Study Notes (no other video list buttons) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
           <PaperCard flat style={{ padding: 'var(--sp-4)' }}>
             <Tag variant={resolveSubjectKey(selectedVideo.subject)}>
@@ -291,12 +331,41 @@ export default function VideoPlayerPage() {
               {selectedVideo.title}
             </h2>
             <p className="type-small" style={{ color: 'var(--ink-muted)', marginTop: '4px' }}>
-              Chapter: {selectedVideo.chapterTitle} · Duration: {formatSeconds(selectedVideo.durationSeconds)}
+              Chapter: {selectedVideo.chapterTitle} · Duration: {formatSeconds(duration)}
             </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)', marginTop: 'var(--sp-3)' }}>
+              <Button
+                variant="primary"
+                size="sm"
+                href={selectedVideo.videoUrl}
+                download={selectedVideo.videoFileName || 'ohmslaw.mp4'}
+              >
+                <Download size={14} aria-hidden="true" />
+                Download Video
+              </Button>
+              <Button
+                variant="kraft"
+                size="sm"
+                href={selectedVideo.notesUrl || '/media/ohmslawnotes.pdf'}
+                download={selectedVideo.notesFileName || 'ohmslawnotes.pdf'}
+              >
+                <Download size={14} aria-hidden="true" />
+                Download Notes
+              </Button>
+            </div>
           </PaperCard>
 
           <PaperCard flat style={{ padding: 'var(--sp-4)' }}>
-            <div style={{ display: 'flex', gap: 'var(--sp-2)', marginBottom: 'var(--sp-3)' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)', marginBottom: 'var(--sp-3)' }}>
+              <Button
+                variant={activeTab === 'notes' ? 'primary' : 'note'}
+                size="sm"
+                onClick={() => setActiveTab('notes')}
+              >
+                <BookOpen size={14} aria-hidden="true" />
+                Notes (PDF)
+              </Button>
               <Button
                 variant={activeTab === 'chapters' ? 'primary' : 'note'}
                 size="sm"
@@ -315,7 +384,38 @@ export default function VideoPlayerPage() {
               </Button>
             </div>
 
-            {activeTab === 'chapters' ? (
+            {activeTab === 'notes' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
+                  <span className="type-small" style={{ color: 'var(--ink-muted)', fontWeight: 600 }}>
+                    {selectedVideo.notesTitle || "Ohm's Law Study Notes (PDF)"}
+                  </span>
+                  <div style={{ display: 'flex', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
+                    <Button
+                      variant="note"
+                      size="sm"
+                      href={selectedVideo.notesUrl || '/media/ohmslawnotes.pdf'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink size={14} aria-hidden="true" />
+                      Open PDF
+                    </Button>
+                  </div>
+                </div>
+                <iframe
+                  src={`${selectedVideo.notesUrl || '/media/ohmslawnotes.pdf'}#view=FitH`}
+                  title="Ohm's Law Notes PDF"
+                  style={{
+                    width: '100%',
+                    height: '420px',
+                    borderRadius: 'var(--r-md)',
+                    border: '1px solid var(--paper-border-warm)',
+                    background: 'var(--paper-field)',
+                  }}
+                />
+              </div>
+            ) : activeTab === 'chapters' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
                 {(selectedVideo.timestamps || []).map((ts, idx) => {
                   const isCurrent =
@@ -341,46 +441,6 @@ export default function VideoPlayerPage() {
                 {selectedVideo.transcript}
               </p>
             )}
-          </PaperCard>
-
-          <PaperCard flat style={{ padding: 'var(--sp-4)' }}>
-            <div className="type-label" style={{ color: 'var(--ink-muted)', marginBottom: 'var(--sp-3)' }}>
-              OTHER SUBJECT VIDEO LECTURES
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
-              {videos.map((v) => {
-                const isActive = selectedVideo.id === v.id;
-                return (
-                  <Button
-                    key={v.id}
-                    variant={isActive ? 'primary' : 'note'}
-                    size="sm"
-                    onClick={() => {
-                      setSelectedVideo(v);
-                      setCheckpointAnswered(false);
-                      setActiveCheckpoint(null);
-                      setCurrentTime(0);
-                      if (videoRef.current) {
-                        videoRef.current.currentTime = 0;
-                      }
-                    }}
-                    style={{ justifyContent: 'flex-start', textAlign: 'left', height: 'auto', padding: '8px 10px' }}
-                  >
-                    <img
-                      src={v.thumbnailUrl}
-                      alt={v.title}
-                      style={{ width: '44px', height: '32px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: 700 }}>{v.title}</div>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                        {v.subject} · Class {v.classLevel}
-                      </div>
-                    </div>
-                  </Button>
-                );
-              })}
-            </div>
           </PaperCard>
         </div>
       </div>

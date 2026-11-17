@@ -195,7 +195,7 @@ a {
   width: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 88px var(--page-pad) var(--sp-7) var(--page-pad);
+  padding: calc(80px + env(safe-area-inset-top, 8px)) var(--page-pad) var(--sp-7) var(--page-pad);
 }
 
 .app-main--landing {

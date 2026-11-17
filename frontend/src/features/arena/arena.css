@@ -47,7 +47,7 @@
 /* Lobby Cards Grid */
 .arena-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
   margin-top: 24px;
 }
@@ -357,4 +357,44 @@
 @keyframes pulse-dot {
   0%, 100% { opacity: 0.3; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.2); }
+}
+
+@media (max-width: 639px) {
+  .arena-board {
+    padding: 14px;
+    min-height: 0;
+  }
+
+  .arena-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .arena-card,
+  .arena-q-card {
+    padding: 16px;
+  }
+
+  .arena-card__avatar-preview {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .arena-fighter-box {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .arena-timer-wrap {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-vs-hexagon,
+  .arena-thinking-dot {
+    animation: none;
+  }
 }

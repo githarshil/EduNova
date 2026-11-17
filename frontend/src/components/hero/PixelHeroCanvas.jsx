@@ -1726,27 +1726,77 @@ export default function PixelHeroCanvas({ reducedMotion = false, onChotuAnchor }
     };
 
     let rafId = null;
+    let isVisible = true;
     const startTime = performance.now();
+    let lastDrawNow = 0;
 
-    if (reducedMotion) {
+    const mqSaveData =
+      typeof navigator !== 'undefined' &&
+      navigator.connection &&
+      navigator.connection.saveData;
+
+    if (reducedMotion || mqSaveData) {
       renderFrame(1.2);
       return () => {
         window.removeEventListener('resize', setupGrid);
       };
     }
 
-    const tick = (now) => {
-      const elapsedSec = (now - startTime) * 0.001;
-      renderFrame(elapsedSec);
+    const startLoop = () => {
+      if (rafId !== null || !isVisible || document.hidden) return;
       rafId = window.requestAnimationFrame(tick);
     };
 
-    rafId = window.requestAnimationFrame(tick);
-
-    return () => {
+    const stopLoop = () => {
       if (rafId !== null) {
         window.cancelAnimationFrame(rafId);
+        rafId = null;
       }
+    };
+
+    const tick = (now) => {
+      if (!isVisible || document.hidden) {
+        rafId = null;
+        return;
+      }
+      // Cap frame rate on narrow/mobile viewports (~18 FPS) so chunky pixel art stays fluid without draining battery
+      const minFrameMs = window.innerWidth < 768 ? 55 : 32;
+      if (now - lastDrawNow >= minFrameMs) {
+        lastDrawNow = now;
+        const elapsedSec = (now - startTime) * 0.001;
+        renderFrame(elapsedSec);
+      }
+      rafId = window.requestAnimationFrame(tick);
+    };
+
+    // Draw first hero frame immediately without waiting for second RAF
+    renderFrame(0.6);
+
+    let observer = null;
+    if (typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(
+        (entries) => {
+          isVisible = entries.some((entry) => entry.isIntersecting);
+          if (isVisible) startLoop();
+          else stopLoop();
+        },
+        { threshold: 0.01 }
+      );
+      observer.observe(canvas);
+    }
+
+    const onVisibility = () => {
+      if (document.hidden) stopLoop();
+      else startLoop();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    startLoop();
+
+    return () => {
+      stopLoop();
+      if (observer) observer.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('resize', setupGrid);
     };
   }, [reducedMotion]);

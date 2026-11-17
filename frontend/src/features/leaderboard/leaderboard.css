@@ -421,9 +421,32 @@
 }
 
 @media (max-width: 768px) {
+  .lb-board {
+    padding: 14px;
+  }
+
+  .lb-table-card {
+    padding: 12px;
+  }
+
   .lb-table-header,
   .lb-row {
-    grid-template-columns: 48px minmax(140px, 1fr) 80px;
+    grid-template-columns: 38px minmax(0, 1fr) 72px;
+    gap: 8px;
+    padding: 10px 8px;
+  }
+
+  .lb-row-user {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .lb-row-name {
+    word-break: break-word;
+  }
+
+  .lb-user-spotlight {
+    padding: 14px;
   }
 
   .lb-col-badge,
@@ -433,9 +456,16 @@
 
   .lb-podium-wrap {
     gap: 6px;
+    padding: 0;
   }
 
   .lb-podium-pillar--1 { height: 90px; }
   .lb-podium-pillar--2 { height: 70px; }
   .lb-podium-pillar--3 { height: 55px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lb-podium-crown {
+    animation: none;
+  }
 }

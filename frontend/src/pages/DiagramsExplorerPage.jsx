@@ -141,14 +141,14 @@ export default function DiagramsExplorerPage() {
         />
       ) : (
         <div
-          className="paper-grid"
+          className="paper-grid paper-grid--split"
           style={{
             gridTemplateColumns: 'minmax(240px, 320px) minmax(0, 1fr)',
             alignItems: 'start',
           }}
         >
           {/* Diagram Selection Index */}
-          <PaperCard flat style={{ padding: 'var(--sp-4)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)' }}>
+          <PaperCard flat style={{ padding: 'var(--sp-4)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-2)', minWidth: 0, maxWidth: '100%' }}>
             <Pin color="amber" position="left" />
             <div className="type-label" style={{ color: 'var(--ink-muted)', marginTop: 'var(--sp-1)' }}>
               SELECT DIAGRAM ({filteredDiagrams.length})
@@ -166,13 +166,14 @@ export default function DiagramsExplorerPage() {
                     size="sm"
                     onClick={() => setSelectedDiagram(d)}
                     style={{
+                      width: '100%',
                       justifyContent: 'space-between',
                       textAlign: 'left',
                       height: 'auto',
                       padding: '10px 12px',
                     }}
                   >
-                    <span style={{ fontWeight: 700 }}>{d.title}</span>
+                    <span style={{ fontWeight: 700, whiteSpace: 'normal', lineHeight: 1.3 }}>{d.title}</span>
                     <Tag variant={subjectKey}>{d.subjectCode || d.subject || 'STEM'}</Tag>
                   </Button>
                 );
@@ -181,7 +182,7 @@ export default function DiagramsExplorerPage() {
           </PaperCard>
 
           {/* Active Interactive Diagram Sheet */}
-          <div>
+          <div style={{ minWidth: 0 }}>
             {selectedDiagram ? (
               <InteractiveDiagram key={selectedDiagram.id || selectedDiagram._id} diagramData={selectedDiagram} />
             ) : (

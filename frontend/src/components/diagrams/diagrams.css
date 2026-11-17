@@ -18,10 +18,18 @@
 .dg-canvas-wrapper svg {
   display: block;
   margin: 0 auto;
-  min-width: 100%;
+  max-width: 100%;
+  width: 100%;
   height: auto;
   user-select: none;
   transition: width 0.15s ease-out;
+}
+
+@media (max-width: 640px) {
+  .dg-canvas-wrapper {
+    padding: var(--sp-2, 8px);
+    min-height: 260px;
+  }
 }
 
 .dg-part {

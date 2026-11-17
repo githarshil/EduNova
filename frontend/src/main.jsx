@@ -5,6 +5,7 @@ import 'katex/dist/katex.min.css';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
 import i18n from './i18n/config';
+import { registerServiceWorker } from './utils/pwaManager';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/desk.css';
@@ -37,13 +38,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 
-// Register Service Worker for PWA & Offline Readiness (P2-12.2)
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(
-      (reg) => console.log('⚡ StemEdu ServiceWorker registered: ', reg.scope),
-      (err) => console.log('ServiceWorker registration failed: ', err)
-    );
-  });
-}
+// Register Production Service Worker with install & update lifecycle (PWA)
+registerServiceWorker();
 

@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import AppShell from './layouts/AppShell';
-import { Skeleton } from './components/ui';
+import { Skeleton, PaperCard, Button, Tag } from './components/ui';
 
 // Core Auth & Student Pages
 import LandingPage from './pages/LandingPage';
@@ -60,10 +60,52 @@ function PageFallback() {
   );
 }
 
+class RouteChunkBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, isOffline: false };
+  }
+
+  static getDerivedStateFromError() {
+    return {
+      hasError: true,
+      isOffline: typeof navigator !== 'undefined' && !navigator.onLine,
+    };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <PaperCard flat style={{ padding: 'var(--sp-5)', maxWidth: '520px', margin: 'var(--sp-5) auto' }}>
+          <Tag variant="paper">{this.state.isOffline ? 'OFFLINE MODE' : 'LOAD NOTICE'}</Tag>
+          <h2 className="type-h2" style={{ color: 'var(--ink)', marginTop: 'var(--sp-2)' }}>
+            {this.state.isOffline ? 'Page not cached for offline yet' : 'Could not load this page'}
+          </h2>
+          <p className="type-small" style={{ color: 'var(--ink-muted)', marginTop: 'var(--sp-2)' }}>
+            {this.state.isOffline
+              ? 'This module was not previously opened while online. Reconnect once to load it, or return to Home.'
+              : 'An unexpected module loading error occurred. Try reloading the page.'}
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--sp-2)', marginTop: 'var(--sp-4)' }}>
+            <Button variant="primary" size="sm" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+            <Button variant="note" size="sm" to="/dashboard" onClick={() => this.setState({ hasError: false })}>
+              Back to Home
+            </Button>
+          </div>
+        </PaperCard>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   return (
     <AppShell>
-      <Suspense fallback={<PageFallback />}>
+      <RouteChunkBoundary>
+        <Suspense fallback={<PageFallback />}>
         <Routes>
           {/* Public Pages */}
           <Route path="/" element={<LandingPage />} />
@@ -132,6 +174,7 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
+      </RouteChunkBoundary>
     </AppShell>
   );
 }

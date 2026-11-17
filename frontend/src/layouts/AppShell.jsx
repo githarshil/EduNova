@@ -11,6 +11,7 @@ import {
   ChotuFab,
   ChotuPanel,
   ToastProvider,
+  PwaBanner,
 } from '../components/ui';
 
 /**
@@ -81,6 +82,27 @@ export default function AppShell({ children }) {
     document.body.classList.toggle('body--live-room', isLiveRoomRoute);
     return () => document.body.classList.remove('body--live-room');
   }, [isLiveRoomRoute]);
+
+  // Hide fixed mobile bottom nav while virtual keyboard is open so inputs stay visible
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const onResize = () => {
+      const keyboardOpen = window.innerWidth <= 767 && window.innerHeight - vv.height > 150;
+      document.body.classList.toggle('body--keyboard-open', keyboardOpen);
+      if (keyboardOpen) {
+        document.documentElement.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+      } else {
+        document.documentElement.style.removeProperty('--vvh');
+      }
+    };
+    vv.addEventListener('resize', onResize);
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      document.body.classList.remove('body--keyboard-open');
+      document.documentElement.style.removeProperty('--vvh');
+    };
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -177,6 +199,8 @@ export default function AppShell({ children }) {
             <ChotuFab open={chotuOpen} onClick={() => setChotuOpen((v) => !v)} />
           </>
         ) : null}
+
+        <PwaBanner hideInstall={isLiveRoomRoute} />
       </div>
     </ToastProvider>
   );

@@ -281,7 +281,7 @@ export default function ArenaLobby({
               </div>
 
               {/* Difficulty Pills */}
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {[
                   { id: 'apprentice', label: 'Apprentice' },
                   { id: 'challenger', label: 'Challenger' },
@@ -293,10 +293,11 @@ export default function ArenaLobby({
                     data-pixel-btn="true"
                     onClick={() => onSelectDifficulty(diff.id)}
                     style={{
-                      flex: 1,
-                      padding: '6px 8px',
+                      flex: '1 1 84px',
+                      minHeight: '44px',
+                      padding: '8px 10px',
                       borderRadius: '8px',
-                      fontSize: '0.75rem',
+                      fontSize: '0.8rem',
                       fontWeight: 800,
                       cursor: 'pointer',
                       border: '1px solid',

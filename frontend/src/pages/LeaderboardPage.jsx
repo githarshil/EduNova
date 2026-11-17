@@ -211,7 +211,7 @@ export default function LeaderboardPage() {
           }}
         >
           {/* Search Box */}
-          <div style={{ position: 'relative', minWidth: '240px', flex: 1, maxWidth: '380px' }}>
+          <div style={{ position: 'relative', minWidth: 0, flex: '1 1 220px', maxWidth: '100%' }}>
             <Search
               size={16}
               style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}
@@ -223,19 +223,19 @@ export default function LeaderboardPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%',
-                padding: '8px 12px 8px 36px',
+                padding: '10px 12px 10px 36px',
                 borderRadius: '10px',
                 background: 'rgba(15, 23, 42, 0.75)',
                 border: '1px solid rgba(45, 212, 191, 0.25)',
                 color: '#fff',
-                fontSize: '0.85rem',
+                fontSize: '1rem',
                 outline: 'none',
               }}
             />
           </div>
 
           {/* Class Filters */}
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {[
               { id: 'all', label: 'All Classes' },
               { id: '10', label: 'Class 10' },

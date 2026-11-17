@@ -1,73 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Offline - StemEdu</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#052e27" />
+  <title>Offline · EVidya STEM Notebook</title>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #F8FAFC;
-      color: #0F172A;
+      font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #052e27;
+      background-image:
+        linear-gradient(rgba(30, 95, 75, 0.25) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 95, 75, 0.25) 1px, transparent 1px);
+      background-size: 32px 32px;
+      color: #f8f6ee;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
+      min-height: 100dvh;
+      padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
     .card {
-      background: white;
-      padding: 32px 24px;
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      background: #fbf9f4;
+      color: #101a3a;
+      padding: 28px 22px;
+      border-radius: 18px;
+      border: 2px solid #d5cab3;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
       max-width: 420px;
       width: 100%;
+      text-align: left;
     }
     .badge {
-      display: inline-block;
-      padding: 4px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
       border-radius: 999px;
-      background: #FEF3C7;
-      color: #B45309;
+      background: #fef3c7;
+      border: 1px solid #d97706;
+      color: #92400e;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-weight: 700;
-      font-size: 0.8rem;
-      margin-bottom: 16px;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
     }
     h1 {
-      font-size: 1.3rem;
-      margin: 0 0 10px 0;
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 10px;
     }
     p {
-      color: #64748B;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      margin: 0 0 20px 0;
+      color: #475569;
+      font-size: 0.9375rem;
+      line-height: 1.55;
+      margin-bottom: 18px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .btn {
-      display: inline-block;
-      background-color: #2563EB;
-      color: white;
-      padding: 10px 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 18px;
       border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 0.9375rem;
       cursor: pointer;
-      border: none;
+      text-decoration: none;
+      border: 2px solid #101a3a;
+    }
+    .btn--primary {
+      background: #1f7a4c;
+      color: #ffffff;
+    }
+    .btn--note {
+      background: #f3ecda;
+      color: #101a3a;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="badge">⚡ Offline Mode</div>
+  <main class="card">
+    <div class="badge">Offline Mode</div>
     <h1>You are currently offline</h1>
     <p>
-      Don't worry! Your cached CBSE lesson notes, downloaded practice test MCQs, and handwriting pages are safely available in local storage.
+      Your internet connection is unavailable. Cached app pages, saved notes, and offline demo audio remain accessible—reconnect anytime to sync with Chotu AI and live classes.
     </p>
-    <button onclick="window.location.reload()" class="btn">Retry Connection</button>
-  </div>
+    <div class="actions">
+      <button type="button" onclick="window.location.reload()" class="btn btn--primary">Retry Connection</button>
+      <a href="/notes" class="btn btn--note">Open Notes</a>
+    </div>
+  </main>
 </body>
 </html>
-

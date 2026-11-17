@@ -28,5 +28,6 @@ export { default as BottomTabs } from './BottomTabs';
 export { default as ChotuMascot } from './ChotuMascot';
 export { default as ChotuFab } from './ChotuFab';
 export { default as ChotuPanel } from './ChotuPanel';
+export { default as PwaBanner } from './PwaBanner';
 export { resolveSubjectKey, SUBJECT_PIN_COLORS, SUBJECT_TAPE_TONES } from './subjectUtils';
 export { resolveCssVar } from './subjectUtils';
