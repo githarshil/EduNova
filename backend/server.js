@@ -26,8 +26,30 @@ if (supabaseAdmin) {
   console.warn('⚠️ SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing in backend/.env');
 }
 
-// Core Middleware
-app.use(cors());
+// Core Middleware — allow configured production frontend URL(s), Netlify deploys, and local dev
+const configuredOrigins = [process.env.CLIENT_URL, process.env.FRONTEND_URL]
+  .filter(Boolean)
+  .flatMap((raw) => raw.split(','))
+  .map((u) => u.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      const clean = origin.replace(/\/+$/, '');
+      if (
+        configuredOrigins.includes(clean) ||
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(clean) ||
+        /^https:\/\/[a-z0-9-]+\.netlify\.app$/i.test(clean)
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
